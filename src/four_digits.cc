@@ -13,6 +13,8 @@
 #define BCD_C PIN6
 #define BCD_D PIN7
 
+#define DIGIT_1 14
+
 struct bcd_code
 {
     int d;
@@ -21,12 +23,19 @@ struct bcd_code
     int a;
 } codes[10];
 
-void display_digit(struct bcd_code code)
+void display_digit(struct bcd_code code, int digit)
 {
     digitalWrite(BCD_A, code.a);
     digitalWrite(BCD_B, code.b);
     digitalWrite(BCD_C, code.c);
     digitalWrite(BCD_D, code.d);
+
+    digitalWrite(digit, HIGH);
+}
+
+void blank_digit(int digit)
+{
+    digitalWrite(digit, LOW);
 }
 
 void setup()
@@ -57,9 +66,13 @@ void loop()
 {
     for (int i = 0; i < 10; ++i)
     {
-        display_digit(codes[i]);
+        display_digit(codes[i], DIGIT_1);
         Serial.print("Display: ");
         Serial.println(i);
         delay(1000);
+
+        blank_digit(DIGIT_1);
+
+        delay(500);
     }
 }
