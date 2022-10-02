@@ -1,0 +1,23 @@
+Images from a scope showing the affect (good) of adding a 220K
+resistor to the anode switching circuit. This decresed the time to the
+off state from ~260us to 172us. It's hard to know if this is really an
+improvement since the Anode voltage drops below Vm pretty fast in
+either case. But, since the voltage drops to zero in 172us, that can
+be the blanking interval. Since it looks like the anode voltage drops
+below 100 in about 100us, might try that for the blanking interval.
+
+The pictures are
+
+Anode_10x_with_220k.png: The anode voltage with the 220k shunt resistor
+Anode_10x_wo_220k.png: The anode voltage without the 220k shunt resistor
+
+Anode_on_with_1466us.png: Measuring the time the anode is on when the
+code uses a on delay time of 1466us
+
+Anode_blanking.png: Measuring the time to turn the anode off, blanking
+time wa 200us and this is with the 220K resistor
+
+Anode_switch_MPSA42_base.png: What is looks like at the base of the
+MPSA42 where the Arduino triggers the Anode, without the 220K shunt on
+the anode.
+

@@ -14,6 +14,7 @@
 #define BCD_D PIN7
 
 #define DIGIT_1 14
+#define DIGIT_2 15
 
 struct bcd_code
 {
@@ -36,6 +37,13 @@ void display_digit(struct bcd_code code, int digit)
 void blank_digit(int digit)
 {
     digitalWrite(digit, LOW);
+#if 0
+    // Only do this with the drivers that have zener diode protection
+    digitalWrite(BCD_A, HIGH);
+    digitalWrite(BCD_B, HIGH);
+    digitalWrite(BCD_C, HIGH);
+    digitalWrite(BCD_D, HIGH);
+#endif
 }
 
 void setup()
@@ -64,15 +72,25 @@ void setup()
 
 void loop()
 {
-    for (int i = 0; i < 10; ++i)
+    for (int n = 0; n < 100; ++n)
     {
-        display_digit(codes[i], DIGIT_1);
+        for (int i = 0; i < 100; ++i)
+        {
+            display_digit(codes[n % 10], DIGIT_1);
+            delayMicroseconds(1466);
+            blank_digit(DIGIT_1);
+            delayMicroseconds(200);
+
+            display_digit(codes[n / 10], DIGIT_2);
+            delayMicroseconds(1466);
+            blank_digit(DIGIT_2);
+            delayMicroseconds(200);
+
+            // simulate time for other four digits
+            delayMicroseconds(1666 * 4);
+        }
+
         Serial.print("Display: ");
-        Serial.println(i);
-        delay(1000);
-
-        blank_digit(DIGIT_1);
-
-        delay(500);
+        Serial.println(n);
     }
 }
