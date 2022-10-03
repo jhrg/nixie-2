@@ -15,8 +15,8 @@
 #define BCD_D PIN7
 
 // PORTC (bits 0 and 1; PORTC has only bits 0 - 5)
-#define DIGIT_1 0
-#define DIGIT_2 1
+#define DIGIT_1 0 // A0
+#define DIGIT_2 1 // A1
 
 // BCD codes for the digits 0 to 9
 uint8_t bcd[10] = {
@@ -36,7 +36,6 @@ void display_digit(int value, int digit)
     uint8_t port_d_low_nyble = PORTD & B00001111;
     PORTD = bcd[value] | port_d_low_nyble;
 
-    // Only one can be on at any given time. FIXME
     PORTC |= B0000001 << digit;
     // digitalWrite(digit, HIGH);
 }
@@ -65,12 +64,12 @@ void loop()
     {
         for (int i = 0; i < 100; ++i)
         {
-            display_digit(n % 10 /*codes[n % 10]*/, DIGIT_1);
+            display_digit(n % 10, DIGIT_1);
             delayMicroseconds(1466);
             blank_display();
             delayMicroseconds(200);
 
-            display_digit(n / 10 /*codes[n / 10]*/, DIGIT_2);
+            display_digit(n / 10, DIGIT_2);
             delayMicroseconds(1466);
             blank_display();
             delayMicroseconds(200);
