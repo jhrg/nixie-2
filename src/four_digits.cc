@@ -18,6 +18,9 @@
 #define DIGIT_1 0 // A0
 #define DIGIT_2 1 // A1
 
+#define DIGIT_ON_TIME 950   // uS
+#define DIGIT_BLANKING 50   // uS
+
 // BCD codes for the digits 0 to 9
 uint8_t bcd[10] = {
     B00000000,
@@ -62,20 +65,20 @@ void loop()
 {
     for (int n = 0; n < 100; ++n)
     {
-        for (int i = 0; i < 100; ++i)
+        for (int i = 0; i < 167; ++i)
         {
             display_digit(n % 10, DIGIT_1);
-            delayMicroseconds(1466);
+            delayMicroseconds(DIGIT_ON_TIME);
             blank_display();
-            delayMicroseconds(200);
+            delayMicroseconds(DIGIT_BLANKING);
 
             display_digit(n / 10, DIGIT_2);
-            delayMicroseconds(1466);
+            delayMicroseconds(DIGIT_ON_TIME);
             blank_display();
-            delayMicroseconds(200);
+            delayMicroseconds(DIGIT_BLANKING);
 
             // simulate time for other four digits
-            delayMicroseconds(1666 * 4);
+            delayMicroseconds((DIGIT_ON_TIME + DIGIT_BLANKING) * 4);
         }
 
         Serial.print("Display: ");
