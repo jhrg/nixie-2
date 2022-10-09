@@ -8,44 +8,50 @@
 
 #define BAUD_RATE 9600
 
-// This is PORTD (bits 7 to 4)
-#define BCD_A PIN4
-#define BCD_B PIN5
-#define BCD_C PIN6
-#define BCD_D PIN7
+// This is PORTC (bits 0 to 3; 5 & 5 are for the I2C bus)
+#define BCD_A A0
+#define BCD_B A1
+#define BCD_C A2
+#define BCD_D A3
 
-// PORTC (bits 0 and 1; PORTC has only bits 0 - 5)
-#define DIGIT_1 0 // A0
-#define DIGIT_2 1 // A1
+// PORTB 8 - 13 (bits 0 - 5)
+#define SECONDS 0
+#define SECONDS_10 1
+
+#define MINUTES 2
+#define MINUTES_10 3
+
+#define HOURS 4
+#define HOURS_10 15
 
 #define DIGIT_ON_TIME 950   // uS
 #define DIGIT_BLANKING 50   // uS
 
-// BCD codes for the digits 0 to 9
+// BCD codes for the digits 0 to 9. Only uses the low nyble
 uint8_t bcd[10] = {
     B00000000,
-    B00010000,
-    B00100000,
-    B00110000,
-    B01000000,
-    B01010000,
-    B01100000,
-    B01110000,
-    B10000000,
-    B10010000};
+    B00000001,
+    B00000010,
+    B00000011,
+    B00000100,
+    B00000101,
+    B00000110,
+    B00000111,
+    B00001000,
+    B00001001};
 
 void display_digit(int value, int digit)
 {
-    uint8_t port_d_low_nyble = PORTD & B00001111;
-    PORTD = bcd[value] | port_d_low_nyble;
+    uint8_t port_d_high_nyble = PORTC & B11110000;
+    PORTC = bcd[value] | port_d_high_nyble;
 
-    PORTC |= B0000001 << digit;
+    PORTB |= B0000001 << digit; // bit(digit)
     // digitalWrite(digit, HIGH);
 }
 
 void blank_display()
 {
-    PORTC &= B00000000;
+    PORTB &= B00000000;
     // digitalWrite(digit, LOW);
 }
 
@@ -67,12 +73,12 @@ void loop()
     {
         for (int i = 0; i < 167; ++i)
         {
-            display_digit(n % 10, DIGIT_1);
+            display_digit(n % 10, SECONDS);
             delayMicroseconds(DIGIT_ON_TIME);
             blank_display();
             delayMicroseconds(DIGIT_BLANKING);
 
-            display_digit(n / 10, DIGIT_2);
+            display_digit(n / 10, SECONDS_10);
             delayMicroseconds(DIGIT_ON_TIME);
             blank_display();
             delayMicroseconds(DIGIT_BLANKING);
