@@ -19,19 +19,6 @@
 #define BCD_C A2
 #define BCD_D A3
 
-// PORTB 8 - 13 (bits 0 - 5)
-#define SECONDS 0
-#define SECONDS_10 1
-
-#define MINUTES 2
-#define MINUTES_10 3
-
-#define HOURS 4
-#define HOURS_10 15
-
-#define DIGIT_ON_TIME 950   // uS
-#define DIGIT_BLANKING 50   // uS
-
 // BCD codes for the digits 0 to 9. Only uses the low nyble
 uint8_t bcd[10] = {
     B00000000,
@@ -44,6 +31,9 @@ uint8_t bcd[10] = {
     B00000111,
     B00001000,
     B00001001};
+
+#define DIGIT_ON_TIME 950 // uS
+#define DIGIT_BLANKING 50 // uS
 
 DS3231 RTC;
 
