@@ -128,7 +128,7 @@ volatile byte tick = LOW;
 /**
  * @brief Record that one second has elapsed
  */
-void timer_1HZ_tick()
+void timer_1HZ_tick_ISR()
 {
     tick = HIGH;
 }
@@ -144,22 +144,36 @@ void setup()
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
     // between the compiled-in times and the set operation.
-    unsigned int unix_time = RTClib::now().unixtime();
-    unsigned int build_time = DateTime(__DATE__, __TIME__).unixtime();
+    Serial.print("Build date: ");
+    Serial.println(__DATE__);
+    Serial.print("Build time: ");
+    Serial.println(__TIME__);
+    // DateTime dt = DateTime(__DATE__, __TIME__);
+    // DateTime dt("Oct 10 2022", "22:39:59");
+    DateTime dt(2022, 10, 10, 22, 43, 59);
+    uint32_t build_time = dt.unixtime();
+    Serial.print("build time: ");
+    Serial.println(build_time);
 
+    DateTime now_dt = RTClib::now();
+    uint32_t unix_time = now_dt.unixtime();
+    Serial.print("unix time: ");
+    Serial.println(unix_time);
+#if 1
     if (abs(unix_time - build_time) > 60)
     {
         Serial.print("Adjusting the time: :");
-        Serial.println(abs(unix_time - build_time));
+        Serial.println(build_time);
 
-        RTC.setEpoch(build_time + TIME_OFFSET);
+        RTC.setEpoch(build_time, true);
     }
+#endif
 #endif
 
     RTC.enable32kHz(false);
     RTC.enableOscillator(true, false /*battery*/, 0 /*1Hz*/);
 
-    Serial.print("Boot time: ");
+    Serial.print("time: ");
     print_time();
 
     get_the_time();
@@ -179,7 +193,7 @@ void setup()
     pinMode(2, INPUT_PULLUP);
 
     // time_1Hz_tick() sets a flag that is tested in loop()
-    attachInterrupt(digitalPinToInterrupt(2), timer_1HZ_tick, RISING);
+    attachInterrupt(digitalPinToInterrupt(2), timer_1HZ_tick_ISR, RISING);
 
     // Set up timer 2 - controls the display multiplexing
     cli(); // stop interrupts
@@ -272,16 +286,23 @@ void display_monitor_info()
 
 void loop()
 {
+    int tick_count = 0;
     if (tick)
     {
-        get_the_time();
         tick = LOW;
+        tick_count++;
+
+        if (tick_count < 5)
+        {
+            // update
+            tick_count = 0;
+        }
+
+        get_the_time();
+
         if (Serial)
         {
             display_monitor_info();
         }
-        // attachInterrupt(INT0, timer_1HZ_tick, RISING);
     }
-
-    // delay(50);
 }
