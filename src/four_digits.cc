@@ -123,6 +123,16 @@ void print_time()
     Serial.println(str);
 }
 
+volatile byte tick = LOW;
+
+/**
+ * @brief Record that one second has elapsed
+ */
+void timer_1HZ_tick()
+{
+    tick = HIGH;
+}
+
 void setup()
 {
     // Enable some minor, chatty, messages on the serial line.
@@ -146,7 +156,7 @@ void setup()
     }
 #endif
 
-    RTC.enable32kHz(true);
+    RTC.enable32kHz(false);
     RTC.enableOscillator(true, false /*battery*/, 0 /*1Hz*/);
 
     Serial.print("Boot time: ");
@@ -159,14 +169,19 @@ void setup()
     blanking = true;
     digit = 1;
 
-    delay(10000); // Not sure we need this...
+    // delay(10000); // Not sure we need this...
 
-    // Initialize all I/O pins to output
+    // Initialize all I/O pins to output, then one for the interrupt
     DDRD = B11111111;
     DDRC = B00111111;
     DDRB = B00111111;
 
-    // Set up timer 2
+    pinMode(2, INPUT_PULLUP);
+
+    // time_1Hz_tick() sets a flag that is tested in loop()
+    attachInterrupt(digitalPinToInterrupt(2), timer_1HZ_tick, RISING);
+
+    // Set up timer 2 - controls the display multiplexing
     cli(); // stop interrupts
 
     // set timer2 interrupt at 950uS. Toggles between 950 and 50 uS
@@ -187,6 +202,9 @@ void setup()
     sei(); // start interrupts
 }
 
+/**
+ * @brief The display multiplexing code
+ */
 ISR(TIMER2_COMPA_vect)
 {
     cli(); // stop interrupts
@@ -243,21 +261,27 @@ ISR(TIMER2_COMPA_vect)
     sei(); // start interrupts
 }
 
-void loop()
+void display_monitor_info()
 {
     static unsigned int n = 0;
+    Serial.print("Display: ");
+    Serial.println(n++);
 
-    get_the_time();
+    print_time();
+}
 
-    if (Serial)
+void loop()
+{
+    if (tick)
     {
-        Serial.print("Display: ");
-        Serial.println(n++);
-
-        print_time();
-
-        delay(50);
+        get_the_time();
+        tick = LOW;
+        if (Serial)
+        {
+            display_monitor_info();
+        }
+        // attachInterrupt(INT0, timer_1HZ_tick, RISING);
     }
 
-    delay(50);
+    // delay(50);
 }
