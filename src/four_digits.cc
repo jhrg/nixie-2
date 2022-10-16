@@ -6,7 +6,7 @@
 
 #include <Arduino.h>
 
-#include <DS3231.h>
+#include <RTClib.h>
 
 #define BAUD_RATE 9600
 #ifndef TIME_OFFSET
@@ -35,7 +35,7 @@ uint8_t bcd[10] = {
 #define DIGIT_ON_TIME 950 // uS
 #define DIGIT_BLANKING 50 // uS
 
-DS3231 RTC;
+RTC_DS3231 rtc;
 
 void display_digit(int value, int digit)
 {
@@ -91,7 +91,8 @@ volatile int hours_10;
  */
 void get_the_time()
 {
-    DateTime dt = RTClib::now();
+    DateTime dt = rtc.now();
+
     // assume it's likely the seconds have changed
     seconds = dt.second() % 10;
     seconds_10 = dt.second() / 10;
@@ -114,13 +115,14 @@ void get_the_time()
     }
 }
 
-void print_time()
+void print_time(DateTime dt, bool print_newline = false)
 {
     char str[64];
-    bool hour_12 = false, pm_hour = false, century = false;
-    snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", RTC.getYear(), RTC.getMonth(century),
-             RTC.getDate(), RTC.getHour(hour_12, pm_hour), RTC.getMinute(), RTC.getSecond());
-    Serial.println(str);
+    snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
+             dt.day(), dt.hour(), dt.minute(), dt.second());
+    Serial.print(str);
+    if (print_newline)
+        Serial.println();
 }
 
 volatile byte tick = LOW;
@@ -141,6 +143,13 @@ void setup()
 
     Wire.begin();
 
+    if (!rtc.begin())
+    {
+        Serial.println("Couldn't find RTC");
+        Serial.flush();
+        // TODO Set error flag
+    }
+
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
     // between the compiled-in times and the set operation.
@@ -148,33 +157,28 @@ void setup()
     Serial.println(__DATE__);
     Serial.print("Build time: ");
     Serial.println(__TIME__);
-    // DateTime dt = DateTime(__DATE__, __TIME__);
-    // DateTime dt("Oct 10 2022", "22:39:59");
-    DateTime dt(2022, 10, 10, 22, 43, 59);
-    uint32_t build_time = dt.unixtime();
-    Serial.print("build time: ");
-    Serial.println(build_time);
 
-    DateTime now_dt = RTClib::now();
-    uint32_t unix_time = now_dt.unixtime();
-    Serial.print("unix time: ");
-    Serial.println(unix_time);
-#if 1
-    if (abs(unix_time - build_time) > 60)
+    DateTime build_time = DateTime(F(__DATE__), F(__TIME__));
+    DateTime now = rtc.now();
+
+    Serial.print(now.unixtime());
+    Serial.print(", ");
+    Serial.println(build_time.unixtime());
+
+    if (abs(now.unixtime() - build_time.unixtime()) > 60)
     {
-        Serial.print("Adjusting the time: :");
-        Serial.println(build_time);
+        Serial.print("Adjusting the time: ");
+        print_time(build_time, true);
 
-        RTC.setEpoch(build_time, true);
+        rtc.adjust(build_time);
     }
 #endif
-#endif
 
-    RTC.enable32kHz(false);
-    RTC.enableOscillator(true, false /*battery*/, 0 /*1Hz*/);
+    rtc.disable32K();
+    rtc.writeSqwPinMode(DS3231_SquareWave1Hz);
 
     Serial.print("time: ");
-    print_time();
+    print_time(rtc.now(), true);
 
     get_the_time();
 
@@ -279,9 +283,10 @@ void display_monitor_info()
 {
     static unsigned int n = 0;
     Serial.print("Display: ");
-    Serial.println(n++);
+    Serial.print(n++);
+    Serial.print(", ");
 
-    print_time();
+    print_time(rtc.now(), true);
 }
 
 void loop()
