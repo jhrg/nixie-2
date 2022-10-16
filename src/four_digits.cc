@@ -240,19 +240,19 @@ ISR(TIMER2_COMPA_vect)
             digit += 1;
             break;
         case 2:
-            display_digit(seconds, 2);
+            display_digit(minutes, 2);
             digit += 1;
             break;
         case 3:
-            display_digit(seconds, 3);
+            display_digit(minutes_10, 3);
             digit += 1;
             break;
         case 4:
-            display_digit(seconds, 4);
+            display_digit(hours, 4);
             digit += 1;
             break;
         case 5:
-            display_digit(seconds, 5);
+            display_digit(hours_10, 5);
             digit = 0;
             break;
         }
