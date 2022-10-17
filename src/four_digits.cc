@@ -43,13 +43,16 @@ uint8_t bcd[10] = {
 
 RTC_DS3231 rtc;
 
+// TODO Fold this iinto the ISR function
 void display_digit(int value, int digit)
 {
     // Set the BCD value on A0-A3. Preserve the values of A4-A7
+    // TODO Improve this: PORTC &= B11110000; PORTC |= bcd[value];
     uint8_t port_d_high_nyble = PORTC & B11110000;
     PORTC = bcd[value] | port_d_high_nyble;
 
     // PORTB |= B0000001 << digit; // bit(digit)
+    // TODO Show all 8 bits; NB: Other code has already blanked the digits.
     switch (digit)
     {
     case 0:
