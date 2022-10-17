@@ -148,6 +148,10 @@ volatile byte tick = LOW;
 
 /**
  * @brief Record that one second has elapsed
+ * @note: Since this updates a byte, it's atomic. Howeer, if the code
+ * is changed to use a multi-byte type, it will need to protect that
+ * operation with cli/sei unless one of the macros in
+ * <avr/interrupt.h> is used (e.g., ISR(INT0_vect)).
  */
 void timer_1HZ_tick_ISR()
 {
@@ -161,6 +165,8 @@ volatile byte tccr2b_5_3 = 0;   // initialized in setup() and used in the Timer2
  */
 ISR(TIMER2_COMPA_vect)
 {
+    // TODO This might not be needed.
+    // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
     cli(); // stop interrupts
 
 #if TIMER_INTERRUPT_TEST
@@ -315,6 +321,7 @@ void setup()
 void loop()
 {
     int tick_count = 0;
+    // TODO Add cli() and sei() around use of tick.
     if (tick)
     {
         tick = LOW;
