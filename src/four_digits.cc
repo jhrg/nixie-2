@@ -13,6 +13,12 @@
 #define TIME_OFFSET 10
 #endif
 
+#define TIMER_INTERRUPT_TEST 1
+#if TIMER_INTERRUPT_TEST
+// GPIO Pin 4, Port D; PORTB |= B0010000;
+#define TIMER_INTERRUPT_TEST_PIN B0010000
+#endif
+
 // This is PORTC (bits 0 to 3; 5 & 5 are for the I2C bus)
 #define BCD_A A0
 #define BCD_B A1
@@ -125,6 +131,16 @@ void print_time(DateTime dt, bool print_newline = false)
         Serial.println();
 }
 
+void display_monitor_info()
+{
+    static unsigned int n = 0;
+    Serial.print("Display: ");
+    Serial.print(n++);
+    Serial.print(", ");
+
+    print_time(rtc.now(), true);
+}
+
 volatile byte tick = LOW;
 
 /**
@@ -133,6 +149,77 @@ volatile byte tick = LOW;
 void timer_1HZ_tick_ISR()
 {
     tick = HIGH;
+}
+
+volatile byte tccr2b_5_3 = 0;   // initialized in setup() and used in the Timer2 ISR
+
+/**
+ * @brief The display multiplexing code
+ */
+ISR(TIMER2_COMPA_vect)
+{
+    cli(); // stop interrupts
+
+#if TIMER_INTERRUPT_TEST
+    PORTD |= TIMER_INTERRUPT_TEST_PIN;
+#endif
+
+    if (blanking)
+    {
+        switch (digit)
+        {
+        case 0:
+            display_digit(seconds, 0);
+            digit += 1;
+            break;
+        case 1:
+            display_digit(seconds_10, 1);
+            digit += 1;
+            break;
+        case 2:
+            display_digit(minutes, 2);
+            digit += 1;
+            break;
+        case 3:
+            display_digit(minutes_10, 3);
+            digit += 1;
+            break;
+        case 4:
+            display_digit(hours, 4);
+            digit += 1;
+            break;
+        case 5:
+            display_digit(hours_10, 5);
+            digit = 0;
+            break;
+        }
+
+        // State is not blanking
+        blanking = false;
+
+        // Set the timer to 950uS
+        TCCR2B &= B11111000;    // clear the CS2n bits
+        TCCR2B |= B00000100;    // set CS22
+        OCR2A = 236; // = [(16*10^6 / 64 ) * 0.000 950] - 1; (must be <256)
+    }
+    else
+    {
+        blank_display();
+
+        // State is blanking
+        blanking = true;
+
+        // Set the timer to 50uS
+        TCCR2B &= B11111000; // clear the CS2n bits
+        TCCR2B |= B00000010; // set CS22
+        OCR2A = 99;          // = [(16*10^6 / 8 ) * 0.000 050] - 1; (must be <256)
+    }
+
+#if TIMER_INTERRUPT_TEST
+    PORTD &= ~TIMER_INTERRUPT_TEST_PIN;
+#endif
+
+    sei(); // start interrupts
 }
 
 void setup()
@@ -194,6 +281,8 @@ void setup()
     DDRC = B00111111;
     DDRB = B00111111;
 
+    // This is used for the 1Hz pulse from the clock that triggers
+    // time updates.
     pinMode(2, INPUT_PULLUP);
 
     // time_1Hz_tick() sets a flag that is tested in loop()
@@ -212,81 +301,12 @@ void setup()
     // use OCR0A of 99, with a pre-scaler of 8 for 50uS
     // turn on CTC mode
     TCCR2A |= (1 << WGM21);
-    // Set CS01 and CS00 bits for 64 prescaler
-    TCCR2B |= (1 << CS21) | (1 << CS20);
+    // Set CS22 bit for 64 pre-scaler --> B00000100
+    TCCR2B |= (1 << CS22);
     // enable timer compare interrupt
     TIMSK2 |= (1 << OCIE2A);
 
     sei(); // start interrupts
-}
-
-/**
- * @brief The display multiplexing code
- */
-ISR(TIMER2_COMPA_vect)
-{
-    cli(); // stop interrupts
-
-    if (blanking)
-    {
-        switch (digit)
-        {
-        case 0:
-            display_digit(seconds, 0);
-            digit += 1;
-            break;
-        case 1:
-            display_digit(seconds_10, 1);
-            digit += 1;
-            break;
-        case 2:
-            display_digit(minutes, 2);
-            digit += 1;
-            break;
-        case 3:
-            display_digit(minutes_10, 3);
-            digit += 1;
-            break;
-        case 4:
-            display_digit(hours, 4);
-            digit += 1;
-            break;
-        case 5:
-            display_digit(hours_10, 5);
-            digit = 0;
-            break;
-        }
-
-        // State is not blanking
-        blanking = false;
-
-        // Set the timer to 950uS
-        OCR2A = 236; // = [(16*10^6 / 64 ) * 0.000 950] - 1; (must be <256)
-        TCCR2B |= (1 << CS21) | (1 << CS20);
-    }
-    else
-    {
-        blank_display();
-
-        // State is blanking
-        blanking = true;
-
-        // Set the timer to 50uS
-        OCR2A = 99; // = [(16*10^6 / 8 ) * 0.000 050] - 1; (must be <256)
-        TCCR2B |= (1 << CS21);
-    }
-
-    sei(); // start interrupts
-}
-
-void display_monitor_info()
-{
-    static unsigned int n = 0;
-    Serial.print("Display: ");
-    Serial.print(n++);
-    Serial.print(", ");
-
-    print_time(rtc.now(), true);
 }
 
 void loop()
