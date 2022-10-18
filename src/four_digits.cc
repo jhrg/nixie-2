@@ -260,8 +260,10 @@ ISR(TIMER2_COMPA_vect)
         blanking = false;
 
         // Set the timer to 950uS
-        TCCR2B &= B11111000;    // clear the CS2n bits
-        TCCR2B |= B00000100;    // set CS22
+        // TODO Use CS22 for both display and blanking.
+        // With the pre-scalar at 64, a count of 0 is 4uS, 1 is 8uS, ..., 
+        // TCCR2B &= B11111000;    // clear the CS2n bits
+        // TCCR2B |= B00000100;    // set CS22
         OCR2A = 236; // = [(16*10^6 / 64 ) * 0.000 950] - 1; (must be <256)
     }
     else
@@ -273,9 +275,11 @@ ISR(TIMER2_COMPA_vect)
         blanking = true;
 
         // Set the timer to 50uS
-        TCCR2B &= B11111000; // clear the CS2n bits
-        TCCR2B |= B00000010; // set CS22
-        OCR2A = 99;          // = [(16*10^6 / 8 ) * 0.000 050] - 1; (must be <256)
+        // TCCR2B &= B11111000; // clear the CS2n bits
+        // TCCR2B |= B00000010; // set CS21
+        // OCR2A = 99;          // = [(16*10^6 / 8 ) * 0.000 050] - 1;
+        // (must be <256)
+        OCR2A = 12; // = [(16*10^6 / 64 ) * 0.000 052] - 1; (must be <256)
     }
 
 #if TIMER_INTERRUPT_TEST
@@ -360,7 +364,7 @@ void setup()
     TCNT2 = 0;  // initialize counter value to 0
 
     // set compare match register for 950uS increments
-    OCR2A = 236; // = [(16*10^6 / 64 ) * 0.00095] - 1; (must be <256)
+    OCR2A = 236; // = [(16*10^6 / 64 ) * 0.000 950] - 1; (must be <256)
     // use OCR0A of 99, with a pre-scaler of 8 for 50uS
     // turn on CTC mode
     TCCR2A |= (1 << WGM21);
