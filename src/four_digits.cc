@@ -145,14 +145,28 @@ void print_time(DateTime dt, bool print_newline = false)
         Serial.println();
 }
 
-void display_monitor_info()
+/**
+ * Print the current time. Print get_time_duration if it is not zero
+ * @param get_time_duration How long did the last get_time transaction take?
+ */
+void display_monitor_info(uint32_t get_time_duration = 0)
 {
     static unsigned int n = 0;
     Serial.print("Display: ");
     Serial.print(n++);
     Serial.print(", ");
 
-    print_time(rtc.now(), true);
+    if (get_time_duration = 0)
+    {
+        print_time(rtc.now(), false);
+        Serial.print("I2C time query: ");
+        Serial.print(get_time_duration);
+        Serial.println(" uS");
+    }
+    else
+    {
+        print_time(rtc.now(), true);
+    }
 }
 
 volatile byte tick = LOW;
@@ -189,27 +203,55 @@ ISR(TIMER2_COMPA_vect)
         switch (digit)
         {
         case 0:
-            display_digit(seconds, 0);
+            // display_digit(seconds, 0);
+
+            //  Set the BCD value on A0-A3. Preserve the values of A4-A7
+            PORTC &= B11110000;
+            PORTC |= bcd[seconds];
+
+            // Turn on the digit
+            PORTB |= DIGIT_0;
+
+            // move the state to the next digit
             digit += 1;
             break;
         case 1:
-            display_digit(seconds_10, 1);
+            //display_digit(seconds_10, 1);
+            PORTC &= B11110000;
+            PORTC |= bcd[seconds_10];
+
+            PORTB |= DIGIT_1;
             digit += 1;
             break;
         case 2:
-            display_digit(minutes, 2);
+            // display_digit(minutes, 2);
+            PORTC &= B11110000;
+            PORTC |= bcd[minutes];
+
+            PORTB |= DIGIT_2;
             digit += 1;
             break;
         case 3:
-            display_digit(minutes_10, 3);
+            // display_digit(minutes_10, 3);
+            PORTC &= B11110000;
+            PORTC |= bcd[minutes_10];
+
             digit += 1;
             break;
         case 4:
-            display_digit(hours, 4);
+            //display_digit(hours, 4);
+            PORTC &= B11110000;
+            PORTC |= bcd[hours];
+
+            PORTB |= DIGIT_4;
             digit += 1;
             break;
         case 5:
-            display_digit(hours_10, 5);
+            //display_digit(hours_10, 5);
+            PORTC &= B11110000;
+            PORTC |= bcd[hours_10];
+
+            PORTB |= DIGIT_5;
             digit = 0;
             break;
         }
@@ -224,7 +266,8 @@ ISR(TIMER2_COMPA_vect)
     }
     else
     {
-        blank_display();
+        //blank_display();
+        PORTB &= B00000000;
 
         // State is blanking
         blanking = true;
@@ -332,7 +375,10 @@ void setup()
 void loop()
 {
     int tick_count = 0;
-    // TODO Add cli() and sei() around use of tick.
+    bool get_time = false;
+     
+    // Protect 'tick' against update while in use
+    cli();
     if (tick)
     {
         tick = LOW;
@@ -344,11 +390,18 @@ void loop()
             tick_count = 0;
         }
 
+        get_time = true;
+    }
+    sei();
+
+    if (get_time)
+    {
+        get_time = false;
+        uint32_t start_get_time = micros();
         get_the_time();
+        uint32_t get_time_duration = micros() - start_get_time;
 
         if (Serial)
-        {
-            display_monitor_info();
-        }
+            display_monitor_info(get_time_duration);
     }
 }
