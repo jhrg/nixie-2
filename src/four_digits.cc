@@ -9,12 +9,9 @@
 #include <RTClib.h>
 
 #define BAUD_RATE 9600
-#ifndef TIME_OFFSET
-#define TIME_OFFSET 10
-#endif
 
-#define TIMER_INTERRUPT_TEST 1
-#if TIMER_INTERRUPT_TEST
+#define TIMER_INTERRUPT_DIAGNOSTIC 1
+#if TIMER_INTERRUPT_DIAGNOSTIC
 // GPIO Pin 4, Port D; PORTB |= B0010000;
 #define TIMER_INTERRUPT_TEST_PIN B0010000
 #endif
@@ -156,7 +153,7 @@ void display_monitor_info(uint32_t get_time_duration = 0)
     Serial.print(n++);
     Serial.print(", ");
 
-    if (get_time_duration = 0)
+    if (get_time_duration != 0)
     {
         print_time(rtc.now(), false);
         Serial.print("I2C time query: ");
@@ -194,7 +191,7 @@ ISR(TIMER2_COMPA_vect)
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
     cli(); // stop interrupts
 
-#if TIMER_INTERRUPT_TEST
+#if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD |= TIMER_INTERRUPT_TEST_PIN;
 #endif
 
@@ -282,7 +279,7 @@ ISR(TIMER2_COMPA_vect)
         OCR2A = 12; // = [(16*10^6 / 64 ) * 0.000 052] - 1; (must be <256)
     }
 
-#if TIMER_INTERRUPT_TEST
+#if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD &= ~TIMER_INTERRUPT_TEST_PIN;
 #endif
 
