@@ -41,37 +41,48 @@ uint8_t bcd[10] = {
 #define DIGIT_ON_TIME 950 // uS
 #define DIGIT_BLANKING 50 // uS
 
+// All of the digits must be pins on PORTB (D8 - D15). This means there
+// can be no SPI bus use.
+#define DIGIT_0 B00000001   // D8
+#define DIGIT_1 B00000010   // D9
+#define DIGIT_2 B00000100   // D10
+#define DIGIT_3 B00001000   // D11
+#define DIGIT_4 B00010000   // D12
+#define DIGIT_5 B00100000   // D13
+
 RTC_DS3231 rtc;
 
-// TODO Fold this iinto the ISR function
+// TODO Fold this into the ISR function
 void display_digit(int value, int digit)
 {
     // Set the BCD value on A0-A3. Preserve the values of A4-A7
-    // TODO Improve this: PORTC &= B11110000; PORTC |= bcd[value];
-    uint8_t port_d_high_nyble = PORTC & B11110000;
-    PORTC = bcd[value] | port_d_high_nyble;
+
+    //uint8_t port_d_high_nyble = PORTC & B11110000;
+    //PORTC = bcd[value] | port_d_high_nyble;
+
+    PORTC &= B11110000;
+    PORTC |= bcd[value];
 
     // PORTB |= B0000001 << digit; // bit(digit)
-    // TODO Show all 8 bits; NB: Other code has already blanked the digits.
     switch (digit)
     {
     case 0:
-        PORTB |= B0000001;
+        PORTB |= DIGIT_0;
         break;
     case 1:
-        PORTB |= B0000010;
+        PORTB |= DIGIT_1;
         break;
     case 2:
-        PORTB |= B0000100;
+        PORTB |= DIGIT_2;
         break;
     case 3:
-        PORTB |= B0001000;
+        PORTB |= DIGIT_3;
         break;
     case 4:
-        PORTB |= B0010000;
+        PORTB |= DIGIT_4;
         break;
     case 5:
-        PORTB |= B0100000;
+        PORTB |= DIGIT_5;
         break;
     default:
         Serial.println("FAIL: Unknown digit number");
