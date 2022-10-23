@@ -298,8 +298,6 @@ void setup()
     blanking = true;
     digit = 1;
 
-    // delay(10000); // Not sure we need this...
-
     // Initialize all I/O pins to output, then one for the interrupt
     DDRD = B11111111;
     DDRC = B00111111;
