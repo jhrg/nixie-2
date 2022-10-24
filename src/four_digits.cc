@@ -10,7 +10,6 @@
 
 #define BAUD_RATE 9600
 
-#define TIMER_INTERRUPT_DIAGNOSTIC 1
 #if TIMER_INTERRUPT_DIAGNOSTIC
 // GPIO Pin 4, Port D; PORTB |= B0010000;
 #define TIMER_INTERRUPT_TEST_PIN B0010000
@@ -47,49 +46,8 @@ uint8_t bcd[10] = {
 #define DIGIT_4 B00010000   // D12
 #define DIGIT_5 B00100000   // D13
 
-RTC_DS3231 rtc;
-
-// TODO Fold this into the ISR function
-void display_digit(int value, int digit)
-{
-    // Set the BCD value on A0-A3. Preserve the values of A4-A7
-
-    //uint8_t port_d_high_nyble = PORTC & B11110000;
-    //PORTC = bcd[value] | port_d_high_nyble;
-
-    PORTC &= B11110000;
-    PORTC |= bcd[value];
-
-    // PORTB |= B0000001 << digit; // bit(digit)
-    switch (digit)
-    {
-    case 0:
-        PORTB |= DIGIT_0;
-        break;
-    case 1:
-        PORTB |= DIGIT_1;
-        break;
-    case 2:
-        PORTB |= DIGIT_2;
-        break;
-    case 3:
-        PORTB |= DIGIT_3;
-        break;
-    case 4:
-        PORTB |= DIGIT_4;
-        break;
-    case 5:
-        PORTB |= DIGIT_5;
-        break;
-    default:
-        Serial.println("FAIL: Unknown digit number");
-    }
-}
-
-void blank_display()
-{
-    PORTB &= B00000000;
-}
+// RTC_DS3231 rtc;
+RTC_DS1307 rtc;
 
 // The state machine
 volatile bool blanking;
@@ -156,7 +114,7 @@ void display_monitor_info(uint32_t get_time_duration = 0)
     if (get_time_duration != 0)
     {
         print_time(rtc.now(), false);
-        Serial.print("I2C time query: ");
+        Serial.print(", I2C time query: ");
         Serial.print(get_time_duration);
         Serial.println(" uS");
     }
@@ -189,7 +147,9 @@ ISR(TIMER2_COMPA_vect)
 {
     // TODO This might not be needed.
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
+#if 0
     cli(); // stop interrupts
+#endif
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD |= TIMER_INTERRUPT_TEST_PIN;
@@ -212,6 +172,7 @@ ISR(TIMER2_COMPA_vect)
             // move the state to the next digit
             digit += 1;
             break;
+
         case 1:
             //display_digit(seconds_10, 1);
             PORTC &= B11110000;
@@ -220,6 +181,7 @@ ISR(TIMER2_COMPA_vect)
             PORTB |= DIGIT_1;
             digit += 1;
             break;
+
         case 2:
             // display_digit(minutes, 2);
             PORTC &= B11110000;
@@ -228,6 +190,7 @@ ISR(TIMER2_COMPA_vect)
             PORTB |= DIGIT_2;
             digit += 1;
             break;
+
         case 3:
             // display_digit(minutes_10, 3);
             PORTC &= B11110000;
@@ -235,6 +198,7 @@ ISR(TIMER2_COMPA_vect)
 
             digit += 1;
             break;
+
         case 4:
             //display_digit(hours, 4);
             PORTC &= B11110000;
@@ -243,6 +207,7 @@ ISR(TIMER2_COMPA_vect)
             PORTB |= DIGIT_4;
             digit += 1;
             break;
+
         case 5:
             //display_digit(hours_10, 5);
             PORTC &= B11110000;
@@ -256,34 +221,29 @@ ISR(TIMER2_COMPA_vect)
         // State is not blanking
         blanking = false;
 
-        // Set the timer to 950uS
-        // TODO Use CS22 for both display and blanking.
+        // Set the timer to 900uS
         // With the pre-scalar at 64, a count of 0 is 4uS, 1 is 8uS, ..., 
-        // TCCR2B &= B11111000;    // clear the CS2n bits
-        // TCCR2B |= B00000100;    // set CS22
-        OCR2A = 236; // = [(16*10^6 / 64 ) * 0.000 950] - 1; (must be <256)
+        OCR2A = 224; // = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
     }
     else
     {
-        //blank_display();
+        // blank_display
         PORTB &= B00000000;
 
         // State is blanking
         blanking = true;
 
-        // Set the timer to 50uS
-        // TCCR2B &= B11111000; // clear the CS2n bits
-        // TCCR2B |= B00000010; // set CS21
-        // OCR2A = 99;          // = [(16*10^6 / 8 ) * 0.000 050] - 1;
-        // (must be <256)
-        OCR2A = 12; // = [(16*10^6 / 64 ) * 0.000 052] - 1; (must be <256)
+        // Set the timer to 100uS
+        OCR2A = 24; // = [(16*10^6 / 64 ) * 0.000 052] - 1; (must be <256)
     }
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD &= ~TIMER_INTERRUPT_TEST_PIN;
 #endif
 
+#if 0
     sei(); // start interrupts
+#endif
 }
 
 void setup()
@@ -325,8 +285,8 @@ void setup()
     }
 #endif
 
-    rtc.disable32K();
-    rtc.writeSqwPinMode(DS3231_SquareWave1Hz);
+    // For the DS3231, use DS3231_SquareWave1HZ
+    rtc.writeSqwPinMode(DS1307_SquareWave1HZ);
 
     Serial.print("time: ");
     print_time(rtc.now(), true);
@@ -337,8 +297,6 @@ void setup()
     // start up as if the display has cycled once through already
     blanking = true;
     digit = 1;
-
-    // delay(10000); // Not sure we need this...
 
     // Initialize all I/O pins to output, then one for the interrupt
     DDRD = B11111111;
@@ -360,9 +318,9 @@ void setup()
     TCCR2B = 0; // same for TCCR0B
     TCNT2 = 0;  // initialize counter value to 0
 
-    // set compare match register for 950uS increments
-    OCR2A = 236; // = [(16*10^6 / 64 ) * 0.000 950] - 1; (must be <256)
-    // use OCR0A of 99, with a pre-scaler of 8 for 50uS
+    // set compare match register for 900uS increments
+    OCR2A = 224; // = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
+
     // turn on CTC mode
     TCCR2A |= (1 << WGM21);
     // Set CS22 bit for 64 pre-scaler --> B00000100
