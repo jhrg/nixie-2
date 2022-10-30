@@ -6,9 +6,10 @@
 
 #include <Arduino.h>
 
-#include <RTClib.h>
+#include <RTClib.h> // https://github.com/adafruit/RTClib
 
 #define BAUD_RATE 9600
+#define CLOCK_QUERY_INTERVAL 100 // seconds
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
 // GPIO Pin 4, Port D; PORTB |= B0010000;
@@ -34,8 +35,10 @@ uint8_t bcd[10] = {
     B00001000,
     B00001001};
 
+#if 0
 #define DIGIT_ON_TIME 950 // uS
 #define DIGIT_BLANKING 50 // uS
+#endif
 
 // All of the digits must be pins on PORTB (D8 - D15). This means there
 // can be no SPI bus use.
@@ -46,8 +49,13 @@ uint8_t bcd[10] = {
 #define DIGIT_4 B00010000 // D12
 #define DIGIT_5 B00100000 // D13
 
+#if USE_DS3231
 RTC_DS3231 rtc;
-/// RTC_DS1307 rtc;
+#elif USE_DS1307
+RTC_DS1307 rtc;
+#else
+#error "Must define one of DS3231 or DS1307"
+#endif
 
 // The state machine
 volatile bool blanking;
@@ -61,11 +69,19 @@ volatile int minutes_10;
 volatile int hours;
 volatile int hours_10;
 
+// Global time - enables advancing time without I2C use
+// DateTime cannot be 'volatile' given its definition
+DateTime dt;
+
 /**
  * @brief Set the global values of time
  */
-void get_the_time() {
+void get_the_time()
+{
+#if 0
     DateTime dt = rtc.now();
+#endif
+    dt = rtc.now();
 
     // assume it's likely the seconds have changed
     seconds = dt.second() % 10;
@@ -87,6 +103,12 @@ void get_the_time() {
     }
 }
 
+void increment_time()
+{
+    TimeSpan ts(1); // a one-second time span
+    dt = dt + ts;   // Advance 'dt' by one second
+}
+
 void print_time(DateTime dt, bool print_newline = false) {
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
@@ -100,22 +122,24 @@ void print_time(DateTime dt, bool print_newline = false) {
  * Print the current time. Print get_time_duration if it is not zero
  * @param get_time_duration How long did the last get_time transaction take?
  */
-void display_monitor_info(uint32_t get_time_duration = 0) {
+void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0)
+{
     static unsigned int n = 0;
     Serial.print("Display: ");
     Serial.print(n++);
     Serial.print(", ");
 
     if (get_time_duration != 0) {
-        print_time(rtc.now(), false);
+        print_time(dt, false);
         Serial.print(", I2C time query: ");
         Serial.print(get_time_duration);
         Serial.println(" uS");
     } else {
-        print_time(rtc.now(), true);
+        print_time(dt, true);
     }
 }
 
+// When has the 1 second interrupt been triggered?
 volatile byte tick = LOW;
 
 /**
@@ -268,13 +292,19 @@ void setup() {
     }
 #endif
 
-    // rtc.writeSqwPinMode(DS1307_SquareWave1HZ);
+#if USE_DS3231
     rtc.writeSqwPinMode(DS3231_SquareWave1Hz);
+#elif USE_DS1307
+    rtc.writeSqwPinMode(DS1307_SquareWave1HZ);
+#endif
 
+#if 0
     Serial.print("time: ");
     print_time(rtc.now(), true);
+#endif
 
     get_the_time();
+    print_time(dt, true);
 
     // State machine initial conditions:
     // start up as if the display has cycled once through already
@@ -324,12 +354,14 @@ void loop() {
         tick = LOW;
         tick_count++;
 
-        if (tick_count < 5) {
-            // update
+        if (tick_count > CLOCK_QUERY_INTERVAL)
+        {
+            // update time using I2C access to the clock
             tick_count = 0;
+            get_time = true;
         }
 
-        get_time = true;
+        increment_time();
     }
     sei();
 
@@ -340,6 +372,6 @@ void loop() {
         uint32_t get_time_duration = micros() - start_get_time;
 
         if (Serial)
-            display_monitor_info(get_time_duration);
+            display_monitor_info(dt, get_time_duration);
     }
 }
