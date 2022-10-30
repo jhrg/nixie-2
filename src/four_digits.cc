@@ -39,12 +39,12 @@ uint8_t bcd[10] = {
 
 // All of the digits must be pins on PORTB (D8 - D15). This means there
 // can be no SPI bus use.
-#define DIGIT_0 B00000001   // D8
-#define DIGIT_1 B00000010   // D9
-#define DIGIT_2 B00000100   // D10
-#define DIGIT_3 B00001000   // D11
-#define DIGIT_4 B00010000   // D12
-#define DIGIT_5 B00100000   // D13
+#define DIGIT_0 B00000001 // D8
+#define DIGIT_1 B00000010 // D9
+#define DIGIT_2 B00000100 // D10
+#define DIGIT_3 B00001000 // D11
+#define DIGIT_4 B00010000 // D12
+#define DIGIT_5 B00100000 // D13
 
 RTC_DS3231 rtc;
 /// RTC_DS1307 rtc;
@@ -64,8 +64,7 @@ volatile int hours_10;
 /**
  * @brief Set the global values of time
  */
-void get_the_time()
-{
+void get_the_time() {
     DateTime dt = rtc.now();
 
     // assume it's likely the seconds have changed
@@ -74,24 +73,21 @@ void get_the_time()
 
     // minutes and hours change less often
     static int minute = -1;
-    if (minute != dt.minute())
-    {
+    if (minute != dt.minute()) {
         minute = dt.minute();
         minutes = dt.minute() % 10;
         minutes_10 = dt.minute() / 10;
     }
 
     static int hour = -1;
-    if (hour != dt.hour())
-    {
+    if (hour != dt.hour()) {
         hour = dt.hour();
         hours = dt.hour() % 10;
         hours_10 = dt.hour() / 10;
     }
 }
 
-void print_time(DateTime dt, bool print_newline = false)
-{
+void print_time(DateTime dt, bool print_newline = false) {
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
              dt.day(), dt.hour(), dt.minute(), dt.second());
@@ -104,22 +100,18 @@ void print_time(DateTime dt, bool print_newline = false)
  * Print the current time. Print get_time_duration if it is not zero
  * @param get_time_duration How long did the last get_time transaction take?
  */
-void display_monitor_info(uint32_t get_time_duration = 0)
-{
+void display_monitor_info(uint32_t get_time_duration = 0) {
     static unsigned int n = 0;
     Serial.print("Display: ");
     Serial.print(n++);
     Serial.print(", ");
 
-    if (get_time_duration != 0)
-    {
+    if (get_time_duration != 0) {
         print_time(rtc.now(), false);
         Serial.print(", I2C time query: ");
         Serial.print(get_time_duration);
         Serial.println(" uS");
-    }
-    else
-    {
+    } else {
         print_time(rtc.now(), true);
     }
 }
@@ -133,18 +125,16 @@ volatile byte tick = LOW;
  * operation with cli/sei unless one of the macros in
  * <avr/interrupt.h> is used (e.g., ISR(INT0_vect)).
  */
-void timer_1HZ_tick_ISR()
-{
+void timer_1HZ_tick_ISR() {
     tick = HIGH;
 }
 
-volatile byte tccr2b_5_3 = 0;   // initialized in setup() and used in the Timer2 ISR
+volatile byte tccr2b_5_3 = 0; // initialized in setup() and used in the Timer2 ISR
 
 /**
  * @brief The display multiplexing code
  */
-ISR(TIMER2_COMPA_vect)
-{
+ISR(TIMER2_COMPA_vect) {
     // TODO This might not be needed.
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
 #if 0
@@ -155,10 +145,8 @@ ISR(TIMER2_COMPA_vect)
     PORTD |= TIMER_INTERRUPT_TEST_PIN;
 #endif
 
-    if (blanking)
-    {
-        switch (digit)
-        {
+    if (blanking) {
+        switch (digit) {
         case 0:
             // display_digit(seconds, 0);
 
@@ -222,11 +210,9 @@ ISR(TIMER2_COMPA_vect)
         blanking = false;
 
         // Set the timer to 900uS
-        // With the pre-scalar at 64, a count of 0 is 4uS, 1 is 8uS, ..., 
+        // With the pre-scalar at 64, a count of 0 is 4uS, 1 is 8uS, ...,
         OCR2A = 224; // = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
-    }
-    else
-    {
+    } else {
         // blank_display
         PORTB &= B00000000;
 
@@ -246,16 +232,14 @@ ISR(TIMER2_COMPA_vect)
 #endif
 }
 
-void setup()
-{
+void setup() {
     // Enable some minor, chatty, messages on the serial line.
     Serial.begin(BAUD_RATE);
     Serial.println("boot");
 
     Wire.begin();
 
-    if (!rtc.begin())
-    {
+    if (!rtc.begin()) {
         Serial.println("Couldn't find RTC");
         Serial.flush();
         // TODO Set error flag
@@ -276,8 +260,7 @@ void setup()
     Serial.print(", ");
     Serial.println(build_time.unixtime());
 
-    if (abs(now.unixtime() - build_time.unixtime()) > 60)
-    {
+    if (abs(now.unixtime() - build_time.unixtime()) > 60) {
         Serial.print("Adjusting the time: ");
         print_time(build_time, true);
 
@@ -285,8 +268,8 @@ void setup()
     }
 #endif
 
-    // For the DS3231, use DS3231_SquareWave1HZ
-    rtc.writeSqwPinMode(DS1307_SquareWave1HZ);
+    // rtc.writeSqwPinMode(DS1307_SquareWave1HZ);
+    rtc.writeSqwPinMode(DS3231_SquareWave1Hz);
 
     Serial.print("time: ");
     print_time(rtc.now(), true);
@@ -331,20 +314,17 @@ void setup()
     sei(); // start interrupts
 }
 
-void loop()
-{
+void loop() {
     int tick_count = 0;
     bool get_time = false;
-     
+
     // Protect 'tick' against update while in use
     cli();
-    if (tick)
-    {
+    if (tick) {
         tick = LOW;
         tick_count++;
 
-        if (tick_count < 5)
-        {
+        if (tick_count < 5) {
             // update
             tick_count = 0;
         }
@@ -353,8 +333,7 @@ void loop()
     }
     sei();
 
-    if (get_time)
-    {
+    if (get_time) {
         get_time = false;
         uint32_t start_get_time = micros();
         get_the_time();
