@@ -9,7 +9,7 @@
 #include <RTClib.h> // https://github.com/adafruit/RTClib
 
 #define BAUD_RATE 9600
-#define CLOCK_QUERY_INTERVAL 100 // seconds
+#define CLOCK_QUERY_INTERVAL 10 // seconds
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
 // GPIO Pin 4, Port D; PORTB |= B0010000;
@@ -76,12 +76,12 @@ DateTime dt;
 /**
  * @brief Set the global values of time
  */
-void get_the_time()
-{
+void update_the_time() {
 #if 0
     DateTime dt = rtc.now();
 #endif
-    dt = rtc.now();
+    TimeSpan ts(1); // a one-second time span
+    dt = dt + ts;   // Advance 'dt' by one second
 
     // assume it's likely the seconds have changed
     seconds = dt.second() % 10;
@@ -103,12 +103,6 @@ void get_the_time()
     }
 }
 
-void increment_time()
-{
-    TimeSpan ts(1); // a one-second time span
-    dt = dt + ts;   // Advance 'dt' by one second
-}
-
 void print_time(DateTime dt, bool print_newline = false) {
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
@@ -122,8 +116,7 @@ void print_time(DateTime dt, bool print_newline = false) {
  * Print the current time. Print get_time_duration if it is not zero
  * @param get_time_duration How long did the last get_time transaction take?
  */
-void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0)
-{
+void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
     static unsigned int n = 0;
     Serial.print("Display: ");
     Serial.print(n++);
@@ -303,7 +296,8 @@ void setup() {
     print_time(rtc.now(), true);
 #endif
 
-    get_the_time();
+    dt = rtc.now();
+    update_the_time();
     print_time(dt, true);
 
     // State machine initial conditions:
@@ -345,7 +339,7 @@ void setup() {
 }
 
 void loop() {
-    int tick_count = 0;
+    static int tick_count = 0;
     bool get_time = false;
 
     // Protect 'tick' against update while in use
@@ -354,21 +348,21 @@ void loop() {
         tick = LOW;
         tick_count++;
 
-        if (tick_count > CLOCK_QUERY_INTERVAL)
-        {
+        if (tick_count > CLOCK_QUERY_INTERVAL) {
             // update time using I2C access to the clock
             tick_count = 0;
             get_time = true;
         }
 
-        increment_time();
+        update_the_time();
+        Serial.println(tick_count);
     }
     sei();
 
     if (get_time) {
         get_time = false;
         uint32_t start_get_time = micros();
-        get_the_time();
+        dt = rtc.now();
         uint32_t get_time_duration = micros() - start_get_time;
 
         if (Serial)
