@@ -46,8 +46,8 @@ uint8_t bcd[10] = {
 #define DIGIT_4 B00010000   // D12
 #define DIGIT_5 B00100000   // D13
 
-// RTC_DS3231 rtc;
-RTC_DS1307 rtc;
+RTC_DS3231 rtc;
+/// RTC_DS1307 rtc;
 
 // The state machine
 volatile bool blanking;
