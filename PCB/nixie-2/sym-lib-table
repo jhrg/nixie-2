@@ -1,3 +1,6 @@
 (sym_lib_table
-  (lib (name "MUR160G")(type "Legacy")(uri "/Users/jimg/src/nixie-2/PCB/KiCAD/2022-10-24_21-01-44/2022-10-24_21-01-44.lib")(options "")(descr ""))
+  (lib (name "MUR160G")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/KiCAD/2022-10-24_21-01-44/2022-10-24_21-01-44.kicad_sym")(options "")(descr ""))
+  (lib (name "nixie-2-symbols")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/nixie-2-symbols.kicad_sym")(options "")(descr ""))
+  (lib (name "arduino")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/downloaded_libs/ARDUINO_PRO_MINI.kicad_sym")(options "")(descr ""))
+  (lib (name "adafruit")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/downloaded_libs/adafruit.kicad_sym")(options "")(descr ""))
 )
