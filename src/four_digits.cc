@@ -9,7 +9,7 @@
 #include <RTClib.h> // https://github.com/adafruit/RTClib
 
 #define BAUD_RATE 9600
-#define CLOCK_QUERY_INTERVAL 10 // seconds
+#define CLOCK_QUERY_INTERVAL 100 // seconds 
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
 // GPIO Pin 4, Port D; PORTB |= B0010000;
@@ -348,14 +348,13 @@ void loop() {
         tick = LOW;
         tick_count++;
 
-        if (tick_count > CLOCK_QUERY_INTERVAL) {
+        if (tick_count >= CLOCK_QUERY_INTERVAL) {
             // update time using I2C access to the clock
             tick_count = 0;
             get_time = true;
         }
 
         update_the_time();
-        Serial.println(tick_count);
     }
     sei();
 
