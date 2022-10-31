@@ -331,9 +331,9 @@ void loop() {
             // update time using I2C access to the clock
             tick_count = 0;
             get_time = true;
+        } else {
+            update_the_time();
         }
-
-        update_the_time();
     }
     sei();
 
