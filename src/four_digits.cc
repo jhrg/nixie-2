@@ -9,7 +9,7 @@
 #include <RTClib.h> // https://github.com/adafruit/RTClib
 
 #define BAUD_RATE 9600
-#define CLOCK_QUERY_INTERVAL 100 // seconds 
+#define CLOCK_QUERY_INTERVAL 100 // seconds
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
 // GPIO Pin 4, Port D; PORTB |= B0010000;
@@ -34,11 +34,6 @@ uint8_t bcd[10] = {
     B00000111,
     B00001000,
     B00001001};
-
-#if 0
-#define DIGIT_ON_TIME 950 // uS
-#define DIGIT_BLANKING 50 // uS
-#endif
 
 // All of the digits must be pins on PORTB (D8 - D15). This means there
 // can be no SPI bus use.
@@ -69,7 +64,10 @@ volatile int minutes_10;
 volatile int hours;
 volatile int hours_10;
 
-// Global time - enables advancing time without I2C use
+// time - enables advancing time without I2C use. This
+// is global so the value set in setup() will be available
+// initially in the loop().
+
 // DateTime cannot be 'volatile' given its definition
 DateTime dt;
 
@@ -77,9 +75,6 @@ DateTime dt;
  * @brief Set the global values of time
  */
 void update_the_time() {
-#if 0
-    DateTime dt = rtc.now();
-#endif
     TimeSpan ts(1); // a one-second time span
     dt = dt + ts;   // Advance 'dt' by one second
 
@@ -132,15 +127,11 @@ void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
     }
 }
 
-// When has the 1 second interrupt been triggered?
+// Set HIGH when the 1 second interrupt been triggered by the clock
 volatile byte tick = LOW;
 
 /**
  * @brief Record that one second has elapsed
- * @note: Since this updates a byte, it's atomic. Howeer, if the code
- * is changed to use a multi-byte type, it will need to protect that
- * operation with cli/sei unless one of the macros in
- * <avr/interrupt.h> is used (e.g., ISR(INT0_vect)).
  */
 void timer_1HZ_tick_ISR() {
     tick = HIGH;
@@ -149,15 +140,11 @@ void timer_1HZ_tick_ISR() {
 volatile byte tccr2b_5_3 = 0; // initialized in setup() and used in the Timer2 ISR
 
 /**
- * @brief The display multiplexing code
+ * @brief The display multiplexing code. A simple state-machine
  */
 ISR(TIMER2_COMPA_vect) {
     // TODO This might not be needed.
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
-#if 0
-    cli(); // stop interrupts
-#endif
-
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD |= TIMER_INTERRUPT_TEST_PIN;
 #endif
@@ -171,7 +158,7 @@ ISR(TIMER2_COMPA_vect) {
             PORTC &= B11110000;
             PORTC |= bcd[seconds];
 
-            // Turn on the digit
+            // Turn on the digit, The digits are blanked below during the blanking state
             PORTB |= DIGIT_0;
 
             // move the state to the next digit
@@ -201,6 +188,7 @@ ISR(TIMER2_COMPA_vect) {
             PORTC &= B11110000;
             PORTC |= bcd[minutes_10];
 
+            PORTB |= DIGIT_3;
             digit += 1;
             break;
 
@@ -242,10 +230,6 @@ ISR(TIMER2_COMPA_vect) {
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD &= ~TIMER_INTERRUPT_TEST_PIN;
-#endif
-
-#if 0
-    sei(); // start interrupts
 #endif
 }
 
@@ -289,11 +273,6 @@ void setup() {
     rtc.writeSqwPinMode(DS3231_SquareWave1Hz);
 #elif USE_DS1307
     rtc.writeSqwPinMode(DS1307_SquareWave1HZ);
-#endif
-
-#if 0
-    Serial.print("time: ");
-    print_time(rtc.now(), true);
 #endif
 
     dt = rtc.now();
@@ -363,6 +342,8 @@ void loop() {
         uint32_t start_get_time = micros();
         dt = rtc.now();
         uint32_t get_time_duration = micros() - start_get_time;
+
+        update_the_time();
 
         if (Serial)
             display_monitor_info(dt, get_time_duration);
