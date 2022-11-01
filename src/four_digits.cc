@@ -303,10 +303,10 @@ void setup() {
 
     // MODE_SWITCH is D3
     pinMode(MODE_SWITCH, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), timed_mode_switch_push, FALLING);
+    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, FALLING);
 
     pinMode(INPUT_SWITCH, INPUT_PULLUP);
-    attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_event, CHANGE);
+    attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
     // Set up timer 2 - controls the display multiplexing
     cli(); // stop interrupts

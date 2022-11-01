@@ -3,17 +3,18 @@
 
 #include "mode_switch.h"
 
-volatile unsigned long control_mode_switch_time = 0;
 #define MODE_SWITCH_INTERVAL 100 // ms
 #define LONG_MODE_SWITCH_PRESS 2000
 
 // Is the timed_mode_switch ISR triggered on the rising or falling
 // edge of the interrupt?
-volatile int control_mode_switch_duration = 0;
+volatile unsigned int mode_switch_duration = 0;
+
+volatile unsigned int input_switch_duration = 0;
 
 // The next two functions are ISRs that implement the mode-switch.
 // Forward declaration
-void timed_mode_switch_release();
+void mode_switch_release();
 
 /**
  * First ISR for the mode switch. Triggered when the switch is pressed.
@@ -27,31 +28,31 @@ void timed_mode_switch_release();
  * not advance. This, the value of millis() will be the value just before
  * entering this ISR.
  */
-void timed_mode_switch_push()
+void mode_switch_push()
 {
-    if (millis() > control_mode_switch_time + MODE_SWITCH_INTERVAL)
+    if (millis() > mode_switch_duration + MODE_SWITCH_INTERVAL)
     {
-        Serial.println("timed_mode_switch_push");
+        Serial.println("mode_switch_push");
         // Triggered on the rising edge is the button press; start the timer
-        control_mode_switch_time = millis();
-        control_mode_switch_duration = 0;
-        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), timed_mode_switch_release, RISING);
+        mode_switch_duration = millis();
+        mode_switch_duration = 0;
+        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_release, RISING);
     }
 }
 
 /**
  * When the mode switch is released, this ISR is run.
  */
-void timed_mode_switch_release()
+void mode_switch_release()
 {
-    if (millis() > control_mode_switch_time + MODE_SWITCH_INTERVAL)
+    if (millis() > mode_switch_duration + MODE_SWITCH_INTERVAL)
     {
-        Serial.println("timed_mode_switch_release");
-        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), timed_mode_switch_push, FALLING);
-        control_mode_switch_duration = millis() - control_mode_switch_time;
-        control_mode_switch_time = millis();
-        
-        if (control_mode_switch_duration > LONG_MODE_SWITCH_PRESS)
+        Serial.println("mode_switch_release");
+        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, FALLING);
+        mode_switch_duration = millis() - mode_switch_duration;
+        mode_switch_duration = millis();
+
+        if (mode_switch_duration > LONG_MODE_SWITCH_PRESS)
         {
             Serial.println("long press - set time");
         }
@@ -62,7 +63,34 @@ void timed_mode_switch_release()
     }
 }
 
-void input_switch_event() 
+void input_switch_push()
 {
-    Serial.println("input mode switch");
+    if (millis() > input_switch_duration + MODE_SWITCH_INTERVAL)
+    {
+        Serial.println("input switch press");
+        // Triggered on the rising edge is the button press; start the timer
+        input_switch_duration = millis();
+        input_switch_duration = 0;
+        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), input_switch_release, RISING);
+    }
+}
+
+void input_switch_release()
+{
+    if (millis() > input_switch_duration + MODE_SWITCH_INTERVAL)
+    {
+        Serial.println("input_switch_release");
+        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), input_switch_push, FALLING);
+        input_switch_duration = millis() - input_switch_duration;
+        input_switch_duration = millis();
+
+        if (input_switch_duration > LONG_MODE_SWITCH_PRESS)
+        {
+            Serial.println("long press - set time");
+        }
+        else
+        {
+            Serial.println("short press - show weather");
+        }
+    }
 }
