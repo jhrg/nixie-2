@@ -305,8 +305,9 @@ void setup() {
     pinMode(MODE_SWITCH, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, FALLING);
 
+    // INPUT_SWITCH is D4
     pinMode(INPUT_SWITCH, INPUT_PULLUP);
-    attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
+    attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
 
     // Set up timer 2 - controls the display multiplexing
     cli(); // stop interrupts
