@@ -18,7 +18,7 @@
 #define TIMER_INTERRUPT_TEST_PIN B0010000
 #endif
 
-#define CLOCK_1HZ 2     // D2
+#define CLOCK_1HZ 2 // D2
 
 // This is PORTC (bits 0 to 3; 5 & 5 are for the I2C bus)
 #define BCD_A A0
@@ -300,10 +300,9 @@ void setup() {
     // time_1Hz_tick() sets a flag that is tested in loop()
     attachInterrupt(digitalPinToInterrupt(CLOCK_1HZ), timer_1HZ_tick_ISR, RISING);
 
-    // MODE_SWITCH is D8 which must be low during boot and is pulled by the switch
-    // But using FALLING seems more reliable
-    pinMode(MODE_SWITCH, INPUT);
-    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), timed_mode_switch_push, RISING);
+    // MODE_SWITCH is D3
+    pinMode(MODE_SWITCH, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), timed_mode_switch_push, FALLING);
 
     // Set up timer 2 - controls the display multiplexing
     cli(); // stop interrupts
