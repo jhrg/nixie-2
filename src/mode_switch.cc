@@ -61,3 +61,8 @@ void timed_mode_switch_release()
         }
     }
 }
+
+void input_switch_event() 
+{
+    Serial.println("input mode switch");
+}

@@ -7,6 +7,7 @@
 #include <Arduino.h>
 
 #include <RTClib.h> // https://github.com/adafruit/RTClib
+#include <PinChangeInterrupt.h>
 
 #include "mode_switch.h"
 
@@ -303,6 +304,9 @@ void setup() {
     // MODE_SWITCH is D3
     pinMode(MODE_SWITCH, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), timed_mode_switch_push, FALLING);
+
+    pinMode(INPUT_SWITCH, INPUT_PULLUP);
+    attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_event, CHANGE);
 
     // Set up timer 2 - controls the display multiplexing
     cli(); // stop interrupts
