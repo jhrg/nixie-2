@@ -8,6 +8,8 @@
 
 #include <RTClib.h> // https://github.com/adafruit/RTClib
 
+#include "mode_switch.h"
+
 #define BAUD_RATE 9600
 #define CLOCK_QUERY_INTERVAL 100 // seconds
 
@@ -15,6 +17,8 @@
 // GPIO Pin 4, Port D; PORTB |= B0010000;
 #define TIMER_INTERRUPT_TEST_PIN B0010000
 #endif
+
+#define CLOCK_1HZ 2     // D2
 
 // This is PORTC (bits 0 to 3; 5 & 5 are for the I2C bus)
 #define BCD_A A0
@@ -291,10 +295,15 @@ void setup() {
 
     // This is used for the 1Hz pulse from the clock that triggers
     // time updates.
-    pinMode(2, INPUT_PULLUP);
+    pinMode(CLOCK_1HZ, INPUT_PULLUP);
 
     // time_1Hz_tick() sets a flag that is tested in loop()
-    attachInterrupt(digitalPinToInterrupt(2), timer_1HZ_tick_ISR, RISING);
+    attachInterrupt(digitalPinToInterrupt(CLOCK_1HZ), timer_1HZ_tick_ISR, RISING);
+
+    // MODE_SWITCH is D8 which must be low during boot and is pulled by the switch
+    // But using FALLING seems more reliable
+    pinMode(MODE_SWITCH, INPUT);
+    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), timed_mode_switch_push, RISING);
 
     // Set up timer 2 - controls the display multiplexing
     cli(); // stop interrupts
