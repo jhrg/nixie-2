@@ -1,5 +1,6 @@
 
 #include <Arduino.h>
+#include <PinChangeInterrupt.h>
 
 #include "mode_switch.h"
 
@@ -71,7 +72,8 @@ void input_switch_push()
         // Triggered on the rising edge is the button press; start the timer
         input_switch_time = millis();
         input_switch_duration = 0;
-        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), input_switch_release, RISING);
+        //attachInterrupt(digitalPinToInterrupt(INPUT_SWITCH), input_switch_release, RISING);
+        attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, RISING);
     }
 }
 
@@ -80,7 +82,8 @@ void input_switch_release()
     if (millis() > input_switch_time + SWITCH_INTERVAL)
     {
         Serial.println("input switch release");
-        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), input_switch_push, FALLING);
+        // attachInterrupt(digitalPinToInterrupt(INPUT_SWITCH), input_switch_push, FALLING);
+        attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
         input_switch_duration = millis() - input_switch_time;
         input_switch_time = millis();
 
