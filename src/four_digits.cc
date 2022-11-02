@@ -6,10 +6,9 @@
 
 #include <Arduino.h>
 
+#include <DHT_U.h>
 #include <PinChangeInterrupt.h>
 #include <RTClib.h> // https://github.com/adafruit/RTClib
-
-#include <DHT_U.h>
 
 #include "mode_switch.h"
 
@@ -67,11 +66,11 @@ RTC_DS1307 rtc;
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
-// The state machine
+// The state machine for the display multiplexing
 volatile bool blanking;
 volatile int digit;
 
-// The current time
+// The current display digits
 volatile int digit_0;
 volatile int digit_1;
 volatile int digit_2;
@@ -117,7 +116,7 @@ void update_display_with_weather() {
     dht.temperature().getEvent(&event);
     int temp = 0;
     if (!isnan(event.temperature)) {
-        temp = round(event.temperature * 9.0/5.0 + 32.0);
+        temp = round(event.temperature * 9.0 / 5.0 + 32.0);
     }
 
     digit_0 = temp % 10;
@@ -126,14 +125,14 @@ void update_display_with_weather() {
     int rh = 0;
     dht.humidity().getEvent(&event);
     if (!isnan(event.relative_humidity)) {
-           rh = round(event.relative_humidity);
+        rh = round(event.relative_humidity);
     }
 
     digit_2 = rh % 10;
     digit_3 = rh / 10;
- 
-    digit_4 = 0;
-    digit_5 = 0;
+
+    digit_4 = -1;
+    digit_5 = -1;
 }
 
 void update_display_using_mode() {
@@ -154,42 +153,6 @@ void update_display_using_mode() {
         break;
     }
 }
-
-#if 0
-/**
- * @brief Set the global values of time
- */
-void update_the_time() {
-#if 0
-    // Sometimes this is called right after a rtc.now() call is made,
-    // so adding 1s is an error. Otherwise, this is called after the
-    // clock's 1s interrupt so 1s should be added.
-    if (add_tick)
-    {
-        TimeSpan ts(1); // a one-second time span
-        dt = dt + ts;   // Advance 'dt' by one second
-    }
-#endif
-    // assume it's likely the seconds have changed
-    seconds = dt.second() % 10;
-    seconds_10 = dt.second() / 10;
-
-    // minutes and hours change less often
-    static int minute = -1;
-    if (minute != dt.minute()) {
-        minute = dt.minute();
-        minutes = dt.minute() % 10;
-        minutes_10 = dt.minute() / 10;
-    }
-
-    static int hour = -1;
-    if (hour != dt.hour()) {
-        hour = dt.hour();
-        hours = dt.hour() % 10;
-        hours_10 = dt.hour() / 10;
-    }
-}
-#endif
 
 void print_time(DateTime dt, bool print_newline = false) {
     char str[64];
@@ -274,10 +237,6 @@ void timer_1HZ_tick_ISR() {
     tick = HIGH;
 }
 
-#if 0
-volatile byte tccr2b_5_3 = 0; // initialized in setup() and used in the Timer2 ISR
-#endif
-
 /**
  * @brief The display multiplexing code. A simple state-machine
  */
@@ -288,64 +247,66 @@ ISR(TIMER2_COMPA_vect) {
     PORTD |= TIMER_INTERRUPT_TEST_PIN;
 #endif
 
+    // If the current state is blanking, stop blanking and enter digit display state
     if (blanking) {
         switch (digit) {
         case 0:
-            // display_digit(seconds, 0);
-
             //  Set the BCD value on A0-A3. Preserve the values of A4-A7
             PORTC &= B11110000;
-            PORTC |= bcd[digit_0];
 
-            // Turn on the digit, The digits are blanked below during the blanking state
-            PORTB |= DIGIT_0;
+            // use a digit value of -1 for blanking
+            if (digit_0 > -1) {
+                PORTC |= bcd[digit_0];
 
+                // Turn on the digit, The digits are blanked below during the blanking state
+                PORTB |= DIGIT_0;
+            }
             // move the state to the next digit
             digit += 1;
             break;
 
         case 1:
-            //display_digit(seconds_10, 1);
             PORTC &= B11110000;
-            PORTC |= bcd[digit_1];
-
-            PORTB |= DIGIT_1;
+            if (digit_1 > -1) {
+                PORTC |= bcd[digit_1];
+                PORTB |= DIGIT_1;
+            }
             digit += 1;
             break;
 
         case 2:
-            // display_digit(minutes, 2);
             PORTC &= B11110000;
-            PORTC |= bcd[digit_2];
-
-            PORTB |= DIGIT_2;
+            if (digit_2 > -1) {
+                PORTC |= bcd[digit_2];
+                PORTB |= DIGIT_2;
+            }
             digit += 1;
             break;
 
         case 3:
-            // display_digit(minutes_10, 3);
             PORTC &= B11110000;
-            PORTC |= bcd[digit_3];
-
-            PORTB |= DIGIT_3;
+            if (digit_3 > -1) {
+                PORTC |= bcd[digit_3];
+                PORTB |= DIGIT_3;
+            }
             digit += 1;
             break;
 
         case 4:
-            //display_digit(hours, 4);
             PORTC &= B11110000;
-            PORTC |= bcd[digit_4];
-
-            PORTB |= DIGIT_4;
+            if (digit_4 > -1) {
+                PORTC |= bcd[digit_4];
+                PORTB |= DIGIT_4;
+            }
             digit += 1;
             break;
 
         case 5:
-            //display_digit(hours_10, 5);
             PORTC &= B11110000;
-            PORTC |= bcd[digit_5];
-
-            PORTB |= DIGIT_5;
+            if (digit_5 > -1) {
+                PORTC |= bcd[digit_5];
+                PORTB |= DIGIT_5;
+            }
             digit = 0;
             break;
         }
@@ -415,8 +376,19 @@ void setup() {
 #endif
 
     dt = rtc.now();
-    update_display_with_time(); // false == don't add 1s to the time.
     print_time(dt, true);
+
+    // blank the display
+    digit_0 = -1;
+    digit_1 = -1;
+    digit_2 = -1;
+    digit_3 = -1;
+    digit_4 = -1;
+    digit_5 = -1;
+
+#if 0    
+    update_display_with_time();
+#endif
 
     // Temperature and humidity sensor
     dht.begin();
