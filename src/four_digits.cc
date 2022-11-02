@@ -9,6 +9,8 @@
 #include <PinChangeInterrupt.h>
 #include <RTClib.h> // https://github.com/adafruit/RTClib
 
+#include <DHT_U.h>
+
 #include "mode_switch.h"
 
 extern volatile enum modes modes;
@@ -23,6 +25,9 @@ extern volatile enum main_mode main_mode;
 #endif
 
 #define CLOCK_1HZ 2 // D2
+
+#define DHTPIN 5      // Digital pin connected to the DHT sensor
+#define DHTTYPE DHT22 // DHT 22 (AM2302)
 
 // This is PORTC (bits 0 to 3; 5 & 5 are for the I2C bus)
 #define BCD_A A0
@@ -59,6 +64,8 @@ RTC_DS1307 rtc;
 #else
 #error "Must define one of DS3231 or DS1307"
 #endif
+
+DHT_Unified dht(DHTPIN, DHTTYPE);
 
 // The state machine
 volatile bool blanking;
@@ -101,13 +108,32 @@ void update_display_with_date() {
     digit_5 = dt.month() / 10;
 }
 
+// Set in the test_DHT code called by setup()
+unsigned long DHT_delay_ms = 0;
+
 void update_display_with_weather() {
-    digit_0 = 6;
-    digit_1 = 5;
-    digit_2 = 6;
-    digit_3 = 5;
-    digit_4 = 6;
-    digit_5 = 5;
+    sensors_event_t event;
+
+    dht.temperature().getEvent(&event);
+    int temp = 0;
+    if (!isnan(event.temperature)) {
+        temp = round(event.temperature * 9.0/5.0 + 32.0);
+    }
+
+    digit_0 = temp % 10;
+    digit_1 = temp / 10;
+
+    int rh = 0;
+    dht.humidity().getEvent(&event);
+    if (!isnan(event.relative_humidity)) {
+           rh = round(event.relative_humidity);
+    }
+
+    digit_2 = rh % 10;
+    digit_3 = rh / 10;
+ 
+    digit_4 = 0;
+    digit_5 = 0;
 }
 
 void update_display_using_mode() {
@@ -192,6 +218,50 @@ void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
     } else {
         print_time(dt, true);
     }
+}
+
+void test_dht_22() {
+    sensor_t sensor;
+    dht.temperature().getSensor(&sensor);
+    Serial.println(F("------------------------------------"));
+    Serial.println(F("Temperature Sensor"));
+    Serial.print(F("Sensor Type: "));
+    Serial.println(sensor.name);
+    Serial.print(F("Driver Ver:  "));
+    Serial.println(sensor.version);
+    Serial.print(F("Unique ID:   "));
+    Serial.println(sensor.sensor_id);
+    Serial.print(F("Max Value:   "));
+    Serial.print(sensor.max_value);
+    Serial.println(F("°C"));
+    Serial.print(F("Min Value:   "));
+    Serial.print(sensor.min_value);
+    Serial.println(F("°C"));
+    Serial.print(F("Resolution:  "));
+    Serial.print(sensor.resolution);
+    Serial.println(F("°C"));
+    Serial.println(F("------------------------------------"));
+    // Print humidity sensor details.
+    dht.humidity().getSensor(&sensor);
+    Serial.println(F("Humidity Sensor"));
+    Serial.print(F("Sensor Type: "));
+    Serial.println(sensor.name);
+    Serial.print(F("Driver Ver:  "));
+    Serial.println(sensor.version);
+    Serial.print(F("Unique ID:   "));
+    Serial.println(sensor.sensor_id);
+    Serial.print(F("Max Value:   "));
+    Serial.print(sensor.max_value);
+    Serial.println(F("%"));
+    Serial.print(F("Min Value:   "));
+    Serial.print(sensor.min_value);
+    Serial.println(F("%"));
+    Serial.print(F("Resolution:  "));
+    Serial.print(sensor.resolution);
+    Serial.println(F("%"));
+    Serial.println(F("------------------------------------"));
+
+    DHT_delay_ms = sensor.min_delay / 1000;
 }
 
 // Set HIGH when the 1 second interrupt been triggered by the clock
@@ -347,6 +417,11 @@ void setup() {
     dt = rtc.now();
     update_display_with_time(); // false == don't add 1s to the time.
     print_time(dt, true);
+
+    // Temperature and humidity sensor
+    dht.begin();
+
+    test_dht_22();
 
     // State machine initial conditions:
     // start up as if the display has cycled once through already
