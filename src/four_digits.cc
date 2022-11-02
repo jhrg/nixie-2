@@ -6,8 +6,8 @@
 
 #include <Arduino.h>
 
-#include <RTClib.h> // https://github.com/adafruit/RTClib
 #include <PinChangeInterrupt.h>
+#include <RTClib.h> // https://github.com/adafruit/RTClib
 
 #include "mode_switch.h"
 
@@ -65,12 +65,12 @@ volatile bool blanking;
 volatile int digit;
 
 // The current time
-volatile int seconds;
-volatile int seconds_10;
-volatile int minutes;
-volatile int minutes_10;
-volatile int hours;
-volatile int hours_10;
+volatile int digit_0;
+volatile int digit_1;
+volatile int digit_2;
+volatile int digit_3;
+volatile int digit_4;
+volatile int digit_5;
 
 // time - enables advancing time without I2C use. This
 // is global so the value set in setup() will be available
@@ -79,18 +79,39 @@ volatile int hours_10;
 // DateTime cannot be 'volatile' given its definition
 DateTime dt;
 
-void update_display_with_time()
-{
+void update_display_with_time() {
+    digit_0 = dt.second() % 10;
+    digit_1 = dt.second() / 10;
+
+    digit_2 = dt.minute() % 10;
+    digit_3 = dt.minute() / 10;
+
+    digit_4 = dt.hour() % 10;
+    digit_5 = dt.hour() / 10;
 }
 
-void update_display_with_date()
-{
+void update_display_with_date() {
+    digit_0 = dt.year() % 10;
+    digit_1 = dt.year() / 10;
+
+    digit_2 = dt.day() % 10;
+    digit_3 = dt.day() / 10;
+
+    digit_4 = dt.month() % 10;
+    digit_5 = dt.month() / 10;
 }
 
-void update_display_using_mode()
-{
-    switch (main_mode)
-    {
+void update_display_with_weather() {
+    digit_0 = 6;
+    digit_1 = 5;
+    digit_2 = 6;
+    digit_3 = 5;
+    digit_4 = 6;
+    digit_5 = 5;
+}
+
+void update_display_using_mode() {
+    switch (main_mode) {
     case show_time:
         update_display_with_time();
         break;
@@ -100,18 +121,20 @@ void update_display_using_mode()
         break;
 
     case show_weather:
+        update_display_with_weather();
         break;
 
     default:
         break;
     }
 }
+
+#if 0
 /**
  * @brief Set the global values of time
  */
-void update_the_time()
-{
- #if 0
+void update_the_time() {
+#if 0
     // Sometimes this is called right after a rtc.now() call is made,
     // so adding 1s is an error. Otherwise, this is called after the
     // clock's 1s interrupt so 1s should be added.
@@ -140,6 +163,7 @@ void update_the_time()
         hours_10 = dt.hour() / 10;
     }
 }
+#endif
 
 void print_time(DateTime dt, bool print_newline = false) {
     char str[64];
@@ -201,7 +225,7 @@ ISR(TIMER2_COMPA_vect) {
 
             //  Set the BCD value on A0-A3. Preserve the values of A4-A7
             PORTC &= B11110000;
-            PORTC |= bcd[seconds];
+            PORTC |= bcd[digit_0];
 
             // Turn on the digit, The digits are blanked below during the blanking state
             PORTB |= DIGIT_0;
@@ -213,7 +237,7 @@ ISR(TIMER2_COMPA_vect) {
         case 1:
             //display_digit(seconds_10, 1);
             PORTC &= B11110000;
-            PORTC |= bcd[seconds_10];
+            PORTC |= bcd[digit_1];
 
             PORTB |= DIGIT_1;
             digit += 1;
@@ -222,7 +246,7 @@ ISR(TIMER2_COMPA_vect) {
         case 2:
             // display_digit(minutes, 2);
             PORTC &= B11110000;
-            PORTC |= bcd[minutes];
+            PORTC |= bcd[digit_2];
 
             PORTB |= DIGIT_2;
             digit += 1;
@@ -231,7 +255,7 @@ ISR(TIMER2_COMPA_vect) {
         case 3:
             // display_digit(minutes_10, 3);
             PORTC &= B11110000;
-            PORTC |= bcd[minutes_10];
+            PORTC |= bcd[digit_3];
 
             PORTB |= DIGIT_3;
             digit += 1;
@@ -240,7 +264,7 @@ ISR(TIMER2_COMPA_vect) {
         case 4:
             //display_digit(hours, 4);
             PORTC &= B11110000;
-            PORTC |= bcd[hours];
+            PORTC |= bcd[digit_4];
 
             PORTB |= DIGIT_4;
             digit += 1;
@@ -249,7 +273,7 @@ ISR(TIMER2_COMPA_vect) {
         case 5:
             //display_digit(hours_10, 5);
             PORTC &= B11110000;
-            PORTC |= bcd[hours_10];
+            PORTC |= bcd[digit_5];
 
             PORTB |= DIGIT_5;
             digit = 0;
@@ -321,7 +345,7 @@ void setup() {
 #endif
 
     dt = rtc.now();
-    update_the_time(); // false == don't add 1s to the time.
+    update_display_with_time(); // false == don't add 1s to the time.
     print_time(dt, true);
 
     // State machine initial conditions:
@@ -388,7 +412,7 @@ void loop() {
             TimeSpan ts(1); // a one-second time span
             dt = dt + ts;   // Advance 'dt' by one second
 
-            update_the_time(); // true == adv time by 1s
+            update_display_using_mode(); // true == adv time by 1s
         }
     }
     sei();
@@ -399,7 +423,7 @@ void loop() {
         dt = rtc.now();
         uint32_t get_time_duration = micros() - start_get_time;
 
-        update_the_time();
+        update_display_using_mode();
 
         if (Serial)
             display_monitor_info(dt, get_time_duration);
