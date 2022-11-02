@@ -92,7 +92,7 @@ void update_display_with_time() {
 
 void update_display_with_date() {
     digit_0 = dt.year() % 10;
-    digit_1 = dt.year() / 10;
+    digit_1 = (dt.year() - 2000) / 10;
 
     digit_2 = dt.day() % 10;
     digit_3 = dt.day() / 10;
