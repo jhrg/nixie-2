@@ -11,6 +11,9 @@
 
 #include "mode_switch.h"
 
+extern volatile enum modes modes;
+extern volatile enum main_mode main_mode;
+
 #define BAUD_RATE 9600
 #define CLOCK_QUERY_INTERVAL 100 // seconds
 
@@ -72,17 +75,52 @@ volatile int hours_10;
 // time - enables advancing time without I2C use. This
 // is global so the value set in setup() will be available
 // initially in the loop().
-
+//
 // DateTime cannot be 'volatile' given its definition
 DateTime dt;
 
+void update_display_with_time()
+{
+}
+
+void update_display_with_date()
+{
+}
+
+void update_display_using_mode()
+{
+    switch (main_mode)
+    {
+    case show_time:
+        update_display_with_time();
+        break;
+
+    case show_date:
+        update_display_with_date();
+        break;
+
+    case show_weather:
+        break;
+
+    default:
+        break;
+    }
+}
 /**
  * @brief Set the global values of time
  */
-void update_the_time() {
-    TimeSpan ts(1); // a one-second time span
-    dt = dt + ts;   // Advance 'dt' by one second
-
+void update_the_time()
+{
+ #if 0
+    // Sometimes this is called right after a rtc.now() call is made,
+    // so adding 1s is an error. Otherwise, this is called after the
+    // clock's 1s interrupt so 1s should be added.
+    if (add_tick)
+    {
+        TimeSpan ts(1); // a one-second time span
+        dt = dt + ts;   // Advance 'dt' by one second
+    }
+#endif
     // assume it's likely the seconds have changed
     seconds = dt.second() % 10;
     seconds_10 = dt.second() / 10;
@@ -142,7 +180,9 @@ void timer_1HZ_tick_ISR() {
     tick = HIGH;
 }
 
+#if 0
 volatile byte tccr2b_5_3 = 0; // initialized in setup() and used in the Timer2 ISR
+#endif
 
 /**
  * @brief The display multiplexing code. A simple state-machine
@@ -281,7 +321,7 @@ void setup() {
 #endif
 
     dt = rtc.now();
-    update_the_time();
+    update_the_time(); // false == don't add 1s to the time.
     print_time(dt, true);
 
     // State machine initial conditions:
@@ -345,7 +385,10 @@ void loop() {
             tick_count = 0;
             get_time = true;
         } else {
-            update_the_time();
+            TimeSpan ts(1); // a one-second time span
+            dt = dt + ts;   // Advance 'dt' by one second
+
+            update_the_time(); // true == adv time by 1s
         }
     }
     sei();

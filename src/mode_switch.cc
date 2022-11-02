@@ -13,10 +13,28 @@ volatile unsigned int mode_switch_duration = 0;
 volatile unsigned int input_switch_time = 0;
 volatile unsigned int input_switch_duration = 0;
 
-// The next two functions are ISRs that implement the mode-switch.
-// Forward declaration
-void mode_switch_release();
+volatile enum modes modes = main;
+volatile enum main_mode main_mode = show_time;
 
+void main_mode_next() 
+{
+    switch (main_mode) {
+        case show_time:
+        main_mode = show_date;
+        break;
+
+        case show_date:
+        main_mode = show_weather;
+        break;
+
+        case show_weather:
+        main_mode = show_time;
+        break;
+
+        default:
+        break;
+    }
+}
 /**
  * First ISR for the mode switch. Triggered when the switch is pressed.
  * The mode switch GPIO is held HIGH normally and a button press causes
@@ -72,8 +90,11 @@ void input_switch_push()
         // Triggered on the rising edge is the button press; start the timer
         input_switch_time = millis();
         input_switch_duration = 0;
-        //attachInterrupt(digitalPinToInterrupt(INPUT_SWITCH), input_switch_release, RISING);
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, RISING);
+
+        main_mode_next();
+        Serial.print("Main mode: ");
+        Serial.println(main_mode);
     }
 }
 
@@ -82,7 +103,6 @@ void input_switch_release()
     if (millis() > input_switch_time + SWITCH_INTERVAL)
     {
         Serial.println("input switch release");
-        // attachInterrupt(digitalPinToInterrupt(INPUT_SWITCH), input_switch_push, FALLING);
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
         input_switch_duration = millis() - input_switch_time;
         input_switch_time = millis();

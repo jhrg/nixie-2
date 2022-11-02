@@ -7,11 +7,16 @@ void mode_switch_release();
 void input_switch_push();
 void input_switch_release();
 
+enum modes {
+    main,
+    set
+};
+
 enum main_mode
 {
     show_time,
-    show_weather,
-    set_time
+    show_date,
+    show_weather
 };
 
 enum set_time_mode
