@@ -5,6 +5,7 @@
 #include "mode_switch.h"
 
 #define SWITCH_INTERVAL 100 // ms
+#define SWITCH_RELEASE_INTERVAL 400 // ms
 #define LONG_MODE_SWITCH_PRESS 2000
 
 volatile unsigned int mode_switch_time = 0;
@@ -64,7 +65,7 @@ void mode_switch_push()
  */
 void mode_switch_release()
 {
-    if (millis() > mode_switch_time + SWITCH_INTERVAL)
+    if (millis() > mode_switch_time + SWITCH_RELEASE_INTERVAL)
     {
         Serial.println("mode switch release");
         attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, FALLING);
@@ -100,7 +101,7 @@ void input_switch_push()
 
 void input_switch_release()
 {
-    if (millis() > input_switch_time + SWITCH_INTERVAL)
+    if (millis() > input_switch_time + SWITCH_RELEASE_INTERVAL)
     {
         Serial.println("input switch release");
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
