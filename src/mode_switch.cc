@@ -84,9 +84,12 @@ void mode_switch_release()
 
 void input_switch_push()
 {
-    if (millis() > input_switch_time + SWITCH_INTERVAL)
+    static unsigned long last_interrupt_time = 0;
+    unsigned long interrupt_time = millis();
+
+    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL)
     {
-        Serial.println("input switch press");
+        Serial.print("input switch press, ");
         // Triggered on the rising edge is the button press; start the timer
         input_switch_time = millis();
         input_switch_duration = 0;
@@ -96,13 +99,18 @@ void input_switch_push()
         Serial.print("Main mode: ");
         Serial.println(main_mode);
     }
+
+    last_interrupt_time = interrupt_time;
 }
 
 void input_switch_release()
 {
-    if (millis() > input_switch_time + SWITCH_INTERVAL)
+    static unsigned long last_interrupt_time = 0;
+    unsigned long interrupt_time = millis();
+
+    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL)
     {
-        Serial.println("input switch release");
+        Serial.print("input switch release, ");
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
         input_switch_duration = millis() - input_switch_time;
         input_switch_time = millis();
@@ -110,4 +118,6 @@ void input_switch_release()
         Serial.print("Duration: ");
         Serial.println(input_switch_duration);
     }
+
+    last_interrupt_time = interrupt_time;
 }
