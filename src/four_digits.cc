@@ -61,7 +61,8 @@ RTC_DS1307 rtc;
 #error "Must define one of DS3231 or DS1307"
 #endif
 
-extern DHT_Unified dht;
+// extern DHT_nonblocking dht;
+// extern DHT_Unified dht;
 // DHT_Unified dht(DHTPIN, DHTTYPE);
 
 // The state machine for the display multiplexing
@@ -330,11 +331,6 @@ void setup() {
 #if 0    
     update_display_with_time();
 #endif
-
-    // Temperature and humidity sensor
-    dht.begin();
-
-    test_dht_22();
 
     // State machine initial conditions:
     // start up as if the display has cycled once through already

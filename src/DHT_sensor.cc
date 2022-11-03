@@ -3,7 +3,10 @@
 
 #include "DHT_sensor.h"
 
+#if 0
 DHT_Unified dht(DHTPIN, DHTTYPE);
+#endif
+DHT_nonblocking dht(DHTPIN, DHTTYPE);
 
 // The current display digits
 extern volatile int digit_0;
@@ -13,8 +16,16 @@ extern volatile int digit_3;
 extern volatile int digit_4;
 extern volatile int digit_5;
 
+void setup_dht()
+{
+    // Temperature and humidity sensor
+    // dht.begin();
+
+    test_dht_22();
+}
 void test_dht_22()
 {
+#if 0
     sensor_t sensor;
     dht.temperature().getSensor(&sensor);
     Serial.println(F("------------------------------------"));
@@ -54,33 +65,51 @@ void test_dht_22()
     Serial.print(sensor.resolution);
     Serial.println(F("%"));
     Serial.println(F("------------------------------------"));
+#endif
 #if 0
     DHT_delay_ms = sensor.min_delay / 1000; // not used
 #endif
 }
 
+/*
+ * Poll for a measurement, keeping the state machine alive.  Returns
+ * true if a measurement is available.
+ */
+static void measure_environment(float *temperature, float *humidity)
+{
+    static unsigned long measurement_timestamp = millis();
+    static float temp = 0.0;
+    static float rh = 0.0;
+
+    /* Measure once every four seconds. */
+    if (millis() - measurement_timestamp > 4000ul)
+    {
+        if (dht.measure(temperature, humidity) == true)
+        {
+            measurement_timestamp = millis();
+            temp = *temperature;
+            rh = *humidity;
+        }
+    }
+    else
+    {
+        *temperature = temp;
+        *humidity = rh;
+    }
+}
+
 // Temperature in F
 void update_display_with_weather()
 {
-    sensors_event_t event;
+    float temperature;
+    float humidity;
+    measure_environment(&temperature, &humidity);
 
-    dht.temperature().getEvent(&event);
-    int temp = 0;
-    if (!isnan(event.temperature))
-    {
-        temp = round(event.temperature * 9.0 / 5.0 + 32.0);
-    }
-
+    int temp = round(temperature * 9.0 / 5.0 + 32.0);
     digit_0 = temp % 10;
     digit_1 = temp / 10;
 
-    int rh = 0;
-    dht.humidity().getEvent(&event);
-    if (!isnan(event.relative_humidity))
-    {
-        rh = round(event.relative_humidity);
-    }
-
+    int rh = round(humidity);
     digit_2 = rh % 10;
     digit_3 = rh / 10;
 
