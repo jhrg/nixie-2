@@ -1,0 +1,3 @@
+[submodule "lib/DHT_nonblocking"]
+	path = lib/DHT_nonblocking
+	url = https://github.com/olewolf/DHT_nonblocking.git
