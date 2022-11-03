@@ -28,7 +28,7 @@ extern volatile enum main_mode main_mode;
 #define DHTPIN 5      // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT22 // DHT 22 (AM2302)
 
-// This is PORTC (bits 0 to 3; 5 & 5 are for the I2C bus)
+// This is PORTC (bits 0 to 3; 4 & 5 are for the I2C bus)
 #define BCD_A A0
 #define BCD_B A1
 #define BCD_C A2
@@ -47,7 +47,7 @@ uint8_t bcd[10] = {
     B00001000,
     B00001001};
 
-// All of the digits must be pins on PORTB (D8 - D15). This means there
+// All of the digits are on PORTB (D8 - D15). This means there
 // can be no SPI bus use.
 #define DIGIT_0 B00000001 // D8
 #define DIGIT_1 B00000010 // D9
@@ -96,6 +96,7 @@ void update_display_with_time() {
     digit_5 = dt.hour() / 10;
 }
 
+// mm/dd/yy
 void update_display_with_date() {
     digit_0 = dt.year() % 10;
     digit_1 = (dt.year() - 2000) / 10;
@@ -108,8 +109,9 @@ void update_display_with_date() {
 }
 
 // Set in the test_DHT code called by setup()
-unsigned long DHT_delay_ms = 0;
+unsigned long DHT_delay_ms = 0; // not used
 
+// Temperature in F
 void update_display_with_weather() {
     sensors_event_t event;
 
@@ -224,7 +226,7 @@ void test_dht_22() {
     Serial.println(F("%"));
     Serial.println(F("------------------------------------"));
 
-    DHT_delay_ms = sensor.min_delay / 1000;
+    DHT_delay_ms = sensor.min_delay / 1000; // not used
 }
 
 // Set HIGH when the 1 second interrupt been triggered by the clock
@@ -400,10 +402,12 @@ void setup() {
     blanking = true;
     digit = 1;
 
-    // Initialize all I/O pins to output, then one for the interrupt
+    // Initialize all I/O pins to output, then set up the inputs/interrupts
     DDRD = B11111111;
     DDRC = B00111111;
     DDRB = B00111111;
+
+    cli(); // stop interrupts
 
     // This is used for the 1Hz pulse from the clock that triggers
     // time updates.
@@ -421,7 +425,6 @@ void setup() {
     attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
 
     // Set up timer 2 - controls the display multiplexing
-    cli(); // stop interrupts
 
     // set timer2 interrupt at 950uS. Toggles between 950 and 50 uS
     TCCR2A = 0; // set entire TCCR2A register to 0
