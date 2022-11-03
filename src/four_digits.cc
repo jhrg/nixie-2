@@ -6,11 +6,11 @@
 
 #include <Arduino.h>
 
-#include <DHT_U.h>
 #include <PinChangeInterrupt.h>
 #include <RTClib.h> // https://github.com/adafruit/RTClib
 
 #include "mode_switch.h"
+#include "DHT_sensor.h"
 
 extern volatile enum modes modes;
 extern volatile enum main_mode main_mode;
@@ -24,9 +24,6 @@ extern volatile enum main_mode main_mode;
 #endif
 
 #define CLOCK_1HZ 2 // D2
-
-#define DHTPIN 5      // Digital pin connected to the DHT sensor
-#define DHTTYPE DHT22 // DHT 22 (AM2302)
 
 // This is PORTC (bits 0 to 3; 4 & 5 are for the I2C bus)
 #define BCD_A A0
@@ -64,7 +61,8 @@ RTC_DS1307 rtc;
 #error "Must define one of DS3231 or DS1307"
 #endif
 
-DHT_Unified dht(DHTPIN, DHTTYPE);
+extern DHT_Unified dht;
+// DHT_Unified dht(DHTPIN, DHTTYPE);
 
 // The state machine for the display multiplexing
 volatile bool blanking;
@@ -85,7 +83,8 @@ volatile int digit_5;
 // DateTime cannot be 'volatile' given its definition
 DateTime dt;
 
-void update_display_with_time() {
+void update_display_with_time()
+{
     digit_0 = dt.second() % 10;
     digit_1 = dt.second() / 10;
 
@@ -97,7 +96,8 @@ void update_display_with_time() {
 }
 
 // mm/dd/yy
-void update_display_with_date() {
+void update_display_with_date()
+{
     digit_0 = dt.year() % 10;
     digit_1 = (dt.year() - 2000) / 10;
 
@@ -109,36 +109,14 @@ void update_display_with_date() {
 }
 
 // Set in the test_DHT code called by setup()
+#if 0
 unsigned long DHT_delay_ms = 0; // not used
+#endif
 
-// Temperature in F
-void update_display_with_weather() {
-    sensors_event_t event;
-
-    dht.temperature().getEvent(&event);
-    int temp = 0;
-    if (!isnan(event.temperature)) {
-        temp = round(event.temperature * 9.0 / 5.0 + 32.0);
-    }
-
-    digit_0 = temp % 10;
-    digit_1 = temp / 10;
-
-    int rh = 0;
-    dht.humidity().getEvent(&event);
-    if (!isnan(event.relative_humidity)) {
-        rh = round(event.relative_humidity);
-    }
-
-    digit_2 = rh % 10;
-    digit_3 = rh / 10;
-
-    digit_4 = -1;
-    digit_5 = -1;
-}
-
-void update_display_using_mode() {
-    switch (main_mode) {
+void update_display_using_mode()
+{
+    switch (main_mode)
+    {
     case show_time:
         update_display_with_time();
         break;
@@ -156,7 +134,8 @@ void update_display_using_mode() {
     }
 }
 
-void print_time(DateTime dt, bool print_newline = false) {
+void print_time(DateTime dt, bool print_newline = false)
+{
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
              dt.day(), dt.hour(), dt.minute(), dt.second());
@@ -169,64 +148,24 @@ void print_time(DateTime dt, bool print_newline = false) {
  * Print the current time. Print get_time_duration if it is not zero
  * @param get_time_duration How long did the last get_time transaction take?
  */
-void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
+void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0)
+{
     static unsigned int n = 0;
     Serial.print("Display: ");
     Serial.print(n++);
     Serial.print(", ");
 
-    if (get_time_duration != 0) {
+    if (get_time_duration != 0)
+    {
         print_time(dt, false);
         Serial.print(", I2C time query: ");
         Serial.print(get_time_duration);
         Serial.println(" uS");
-    } else {
+    }
+    else
+    {
         print_time(dt, true);
     }
-}
-
-void test_dht_22() {
-    sensor_t sensor;
-    dht.temperature().getSensor(&sensor);
-    Serial.println(F("------------------------------------"));
-    Serial.println(F("Temperature Sensor"));
-    Serial.print(F("Sensor Type: "));
-    Serial.println(sensor.name);
-    Serial.print(F("Driver Ver:  "));
-    Serial.println(sensor.version);
-    Serial.print(F("Unique ID:   "));
-    Serial.println(sensor.sensor_id);
-    Serial.print(F("Max Value:   "));
-    Serial.print(sensor.max_value);
-    Serial.println(F("°C"));
-    Serial.print(F("Min Value:   "));
-    Serial.print(sensor.min_value);
-    Serial.println(F("°C"));
-    Serial.print(F("Resolution:  "));
-    Serial.print(sensor.resolution);
-    Serial.println(F("°C"));
-    Serial.println(F("------------------------------------"));
-    // Print humidity sensor details.
-    dht.humidity().getSensor(&sensor);
-    Serial.println(F("Humidity Sensor"));
-    Serial.print(F("Sensor Type: "));
-    Serial.println(sensor.name);
-    Serial.print(F("Driver Ver:  "));
-    Serial.println(sensor.version);
-    Serial.print(F("Unique ID:   "));
-    Serial.println(sensor.sensor_id);
-    Serial.print(F("Max Value:   "));
-    Serial.print(sensor.max_value);
-    Serial.println(F("%"));
-    Serial.print(F("Min Value:   "));
-    Serial.print(sensor.min_value);
-    Serial.println(F("%"));
-    Serial.print(F("Resolution:  "));
-    Serial.print(sensor.resolution);
-    Serial.println(F("%"));
-    Serial.println(F("------------------------------------"));
-
-    DHT_delay_ms = sensor.min_delay / 1000; // not used
 }
 
 // Set HIGH when the 1 second interrupt been triggered by the clock
