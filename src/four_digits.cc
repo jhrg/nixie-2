@@ -78,7 +78,7 @@ volatile int digit_5;
 
 void print_digits(bool newline) {
     char str[64];
-    snprintf(str, 64, "%02d-%02d-%02d-%02d-%02d-%02d", digit_0, digit_1, digit_2, digit_3, digit_4, digit_5);
+    snprintf(str, 64, "%02d-%02d-%02d-%02d-%02d-%02d", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
     Serial.print(str);
     if (newline)
         Serial.println();
@@ -134,7 +134,7 @@ void update_display_using_mode() {
         Serial.println(weather_state);
         Serial.flush();
         update_display_with_weather(weather_state);
-        weather_state = (weather_state == 4) ? 1 : weather_state + 1;
+        weather_state = (weather_state == 8) ? 1 : weather_state + 1;
 
         // could return to time here
         break;
@@ -338,8 +338,6 @@ void setup() {
 
     test_MPL3115A2();
 
-    test_MPL3115A2();
-
     // blank the display
     digit_0 = -1;
     digit_1 = -1;
@@ -392,11 +390,7 @@ void setup() {
     // enable timer compare interrupt
     TIMSK2 |= (1 << OCIE2A);
 
-    test_MPL3115A2();
-
     sei(); // start interrupts
-
-    test_MPL3115A2();
 }
 
 void loop() {

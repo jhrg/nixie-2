@@ -106,17 +106,18 @@ void update_display_with_weather(int state) {
         break;
     }
 
-    case 3: {
+    case 5: {
         Serial.println("Getting pressure...");
         Serial.flush();
-        float pressure = 29.29;
-#if 0
         float pressure = baro.getPressure();
-        float altitude = baro.getAltitude();
+ #if 0
+       float altitude = baro.getAltitude();
         float temperature = baro.getTemperature();
 #endif
         int LHS = (int)pressure;
-        int RHS = (int)((pressure - LHS) * 100);
+        Serial.print("LHS: "); Serial.println(LHS);
+        int RHS = (int)((pressure - LHS) * 100.0);
+        Serial.print("RHS: "); Serial.println(RHS);
         digit_0 = RHS % 10;
         digit_1 = RHS / 10;
         digit_2 = LHS % 10;
