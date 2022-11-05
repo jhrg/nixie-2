@@ -402,7 +402,7 @@ void setup() {
 void loop() {
     static int tick_count = 0;
     bool get_time = false;
-
+    bool update_display = false;
     // Protect 'tick' against update while in use
     cli();
     if (tick) {
@@ -416,9 +416,11 @@ void loop() {
         } else {
             TimeSpan ts(1); // a one-second time span
             dt = dt + ts;   // Advance 'dt' by one second
-
-            update_display_using_mode(); // true == adv time by 1s
+            
+            // move out of cli/sei block update_display_using_mode(); // true == adv time by 1s
         }
+
+        update_display = true;
     }
     sei();
 
@@ -433,4 +435,7 @@ void loop() {
         if (Serial)
             display_monitor_info(dt, get_time_duration);
     }
+
+    if (update_display)
+        update_display_using_mode(); // true == adv time by 1s
 }
