@@ -53,6 +53,11 @@ uint8_t bcd[10] = {
 #define DIGIT_4 B00010000 // D12
 #define DIGIT_5 B00100000 // D13
 
+// PORTD
+#define RHDP B00100000 // D5
+#define RHDP B01100000 // D6
+#define BDP B01100000  // D5 & D6
+
 #if USE_DS3231
 RTC_DS3231 rtc;
 #elif USE_DS1307
@@ -76,6 +81,20 @@ volatile int digit_3;
 volatile int digit_4;
 volatile int digit_5;
 
+volatile int d0_rhdp;
+volatile int d1_rhdp;
+volatile int d2_rhdp;
+volatile int d3_rhdp;
+volatile int d4_rhdp;
+volatile int d5_rhdp;
+
+volatile int d0_lhdp;
+volatile int d1_lhdp;
+volatile int d2_lhdp;
+volatile int d3_lhdp;
+volatile int d4_lhdp;
+volatile int d5_lhdp;
+
 /**
  * Print the values of the current digits
  */
@@ -90,8 +109,7 @@ void print_digits(bool newline) {
 /**
  * Print the current time, formatted
  */
-void print_time(DateTime dt, bool print_newline = false)
-{
+void print_time(DateTime dt, bool print_newline = false) {
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
              dt.day(), dt.hour(), dt.minute(), dt.second());
@@ -104,22 +122,18 @@ void print_time(DateTime dt, bool print_newline = false)
  * Print the current time. Print get_time_duration if it is not zero
  * @param get_time_duration How long did the last get_time transaction take?
  */
-void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0)
-{
+void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
     static unsigned int n = 0;
     Serial.print("Display: ");
     Serial.print(n++);
     Serial.print(", ");
 
-    if (get_time_duration != 0)
-    {
+    if (get_time_duration != 0) {
         print_time(dt, false);
         Serial.print(", I2C time query: ");
         Serial.print(get_time_duration);
         Serial.println(" uS");
-    }
-    else
-    {
+    } else {
         print_time(dt, true);
     }
 }
@@ -235,6 +249,8 @@ ISR(TIMER2_COMPA_vect) {
                 PORTC |= bcd[digit_2];
                 PORTB |= DIGIT_2;
             }
+            if (d2_rhdp)
+                PORTD |= RHDP;
             digit += 1;
             break;
 
@@ -253,6 +269,8 @@ ISR(TIMER2_COMPA_vect) {
                 PORTC |= bcd[digit_4];
                 PORTB |= DIGIT_4;
             }
+            if (d4_rhdp)
+                PORTD |= RHDP;
             digit += 1;
             break;
 
@@ -275,6 +293,7 @@ ISR(TIMER2_COMPA_vect) {
     } else {
         // blank_display
         PORTB &= B00000000;
+        PORTD &= B10011111;
 
         // State is blanking
         blanking = true;
@@ -354,6 +373,13 @@ void setup() {
     digit_4 = -1;
     digit_5 = -1;
 
+    d0_rhdp = 0;
+    d1_rhdp = 0;
+    d2_rhdp = 0;
+    d3_rhdp = 0;
+    d4_rhdp = 0;
+    d5_rhdp = 0;
+
     // State machine initial conditions:
     // start up as if the display has cycled once through already
     blanking = true;
@@ -418,8 +444,16 @@ void loop() {
         } else {
             TimeSpan ts(1); // a one-second time span
             dt = dt + ts;   // Advance 'dt' by one second
-            
+
             // move out of cli/sei block update_display_using_mode(); // true == adv time by 1s
+        }
+
+        if (tick_count & B00000001) {
+            d2_rhdp = 1;
+            d4_rhdp = 1;
+        } else {
+            d2_rhdp = 0;
+            d4_rhdp = 0;
         }
 
         update_display = true;
