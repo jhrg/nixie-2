@@ -6,6 +6,8 @@
 DHT_Unified dht(DHTPIN, DHTTYPE);
 Adafruit_MPL3115A2 baro;
 
+extern void print_digits(bool newline);
+
 // The current display digits
 extern volatile int digit_0;
 extern volatile int digit_1;
@@ -14,8 +16,7 @@ extern volatile int digit_3;
 extern volatile int digit_4;
 extern volatile int digit_5;
 
-void test_dht_22()
-{
+void test_dht_22() {
     sensor_t sensor;
     dht.temperature().getSensor(&sensor);
     Serial.println(F("------------------------------------"));
@@ -57,8 +58,7 @@ void test_dht_22()
     Serial.println(F("------------------------------------"));
 }
 
-void test_MPL3115A2()
-{
+void test_MPL3115A2() {
     float pressure = baro.getPressure();
     float altitude = baro.getAltitude();
     float temperature = baro.getTemperature();
@@ -78,25 +78,19 @@ void test_MPL3115A2()
 // The weather display is a simple state machine:
 // 1,2: show temperature, humidity
 // 3,4: show pressure
-void update_display_with_weather(int state)
-{
+void update_display_with_weather(int state) {
     sensors_event_t event;
 
-    switch (state)
-    {
-    case 1:
-    case 2:
-    {
+    switch (state) {
+    case 1: {
         dht.temperature().getEvent(&event);
         int temp = 0;
-        if (!isnan(event.temperature))
-        {
+        if (!isnan(event.temperature)) {
             temp = round(event.temperature * 9.0 / 5.0 + 32.0);
         }
         int rh = 0;
         // dht.humidity().getEvent(&event);
-        if (!isnan(event.relative_humidity))
-        {
+        if (!isnan(event.relative_humidity)) {
             rh = round(event.relative_humidity);
         }
 
@@ -106,15 +100,18 @@ void update_display_with_weather(int state)
         digit_3 = -1;
         digit_4 = rh % 10;
         digit_5 = rh / 10;
+
+        print_digits(true);
+
         break;
     }
 
-    case 3:
-    case 4:
-    {
+    case 3: {
         Serial.println("Getting pressure...");
-        float pressure = baro.getPressure();
+        Serial.flush();
+        float pressure = 29.29;
 #if 0
+        float pressure = baro.getPressure();
         float altitude = baro.getAltitude();
         float temperature = baro.getTemperature();
 #endif
@@ -126,6 +123,9 @@ void update_display_with_weather(int state)
         digit_3 = LHS / 10;
         digit_4 = -1;
         digit_5 = -1;
+
+        print_digits(true);
+
         break;
     }
 

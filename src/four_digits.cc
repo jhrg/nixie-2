@@ -9,8 +9,8 @@
 #include <PinChangeInterrupt.h>
 #include <RTClib.h> // https://github.com/adafruit/RTClib
 
-#include "mode_switch.h"
 #include "DHT_sensor.h"
+#include "mode_switch.h"
 
 extern volatile enum modes modes;
 extern volatile enum main_mode main_mode;
@@ -76,6 +76,14 @@ volatile int digit_3;
 volatile int digit_4;
 volatile int digit_5;
 
+void print_digits(bool newline) {
+    char str[64];
+    snprintf(str, 64, "%02d-%02d-%02d-%02d-%02d-%02d", digit_0, digit_1, digit_2, digit_3, digit_4, digit_5);
+    Serial.print(str);
+    if (newline)
+        Serial.println();
+}
+
 // time - enables advancing time without I2C use. This
 // is global so the value set in setup() will be available
 // initially in the loop().
@@ -83,8 +91,7 @@ volatile int digit_5;
 // DateTime cannot be 'volatile' given its definition
 DateTime dt;
 
-void update_display_with_time()
-{
+void update_display_with_time() {
     digit_0 = dt.second() % 10;
     digit_1 = dt.second() / 10;
 
@@ -96,8 +103,7 @@ void update_display_with_time()
 }
 
 // mm/dd/yy
-void update_display_with_date()
-{
+void update_display_with_date() {
     digit_0 = dt.year() % 10;
     digit_1 = (dt.year() - 2000) / 10;
 
@@ -108,25 +114,28 @@ void update_display_with_date()
     digit_5 = dt.month() / 10;
 }
 
-void update_display_using_mode()
-{
-    switch (main_mode)
-    {
+void update_display_using_mode() {
+    switch (main_mode) {
     case show_time:
         update_display_with_time();
         break;
 
     case show_date:
         update_display_with_date();
+
+        print_digits(true);
+
         break;
 
     case show_weather: {
         // 4 seconds; state 1,2 == temp & humidity, 3,4 baro pressure,
         static int weather_state = 1;
-        update_display_with_weather(weather_state);
-        weather_state = (weather_state == 4) ? 1 : weather_state + 1;
         Serial.print("Weather state: ");
         Serial.println(weather_state);
+        Serial.flush();
+        update_display_with_weather(weather_state);
+        weather_state = (weather_state == 4) ? 1 : weather_state + 1;
+
         // could return to time here
         break;
     }
@@ -136,8 +145,7 @@ void update_display_using_mode()
     }
 }
 
-void print_time(DateTime dt, bool print_newline = false)
-{
+void print_time(DateTime dt, bool print_newline = false) {
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
              dt.day(), dt.hour(), dt.minute(), dt.second());
@@ -150,22 +158,18 @@ void print_time(DateTime dt, bool print_newline = false)
  * Print the current time. Print get_time_duration if it is not zero
  * @param get_time_duration How long did the last get_time transaction take?
  */
-void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0)
-{
+void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
     static unsigned int n = 0;
     Serial.print("Display: ");
     Serial.print(n++);
     Serial.print(", ");
 
-    if (get_time_duration != 0)
-    {
+    if (get_time_duration != 0) {
         print_time(dt, false);
         Serial.print(", I2C time query: ");
         Serial.print(get_time_duration);
         Serial.println(" uS");
-    }
-    else
-    {
+    } else {
         print_time(dt, true);
     }
 }
@@ -289,8 +293,7 @@ void setup() {
         // TODO Set error flag
     }
 
-    if (!baro.begin())
-    {
+    if (!baro.begin()) {
         Serial.println("Couldn't setup MPL3115A2");
         Serial.flush();
         // TODO Set error flag
@@ -389,7 +392,11 @@ void setup() {
     // enable timer compare interrupt
     TIMSK2 |= (1 << OCIE2A);
 
+    test_MPL3115A2();
+
     sei(); // start interrupts
+
+    test_MPL3115A2();
 }
 
 void loop() {
