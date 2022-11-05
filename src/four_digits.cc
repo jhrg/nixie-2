@@ -333,6 +333,8 @@ void setup() {
 
     test_MPL3115A2();
 
+    test_MPL3115A2();
+
     // blank the display
     digit_0 = -1;
     digit_1 = -1;

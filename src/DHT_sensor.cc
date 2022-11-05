@@ -112,6 +112,7 @@ void update_display_with_weather(int state)
     case 3:
     case 4:
     {
+        Serial.println("Getting pressure...");
         float pressure = baro.getPressure();
 #if 0
         float altitude = baro.getAltitude();
