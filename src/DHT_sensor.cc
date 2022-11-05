@@ -55,7 +55,6 @@ void test_dht_22() {
     Serial.print(F("Resolution:  "));
     Serial.print(sensor.resolution);
     Serial.println(F("%"));
-    Serial.println(F("------------------------------------"));
 }
 
 void test_MPL3115A2() {
@@ -63,7 +62,7 @@ void test_MPL3115A2() {
     float altitude = baro.getAltitude();
     float temperature = baro.getTemperature();
 
-    Serial.println("-----------------");
+    Serial.println(F("------------------------------------"));
     Serial.print("pressure = ");
     Serial.print(pressure);
     Serial.println(" hPa");
@@ -100,33 +99,32 @@ void update_display_with_weather(int state) {
         digit_3 = -1;
         digit_4 = rh % 10;
         digit_5 = rh / 10;
-
+#if DEBUG
         print_digits(true);
-
+#endif
         break;
     }
 
-    case 5: {
-        Serial.println("Getting pressure...");
-        Serial.flush();
-        float pressure = baro.getPressure();
- #if 0
-       float altitude = baro.getAltitude();
-        float temperature = baro.getTemperature();
-#endif
+    case WEATHER_DISPLAY_DURATION:
+    {
+        // for altitude correction: 1 hPa decrease per 30 feet above MSL
+        float pressure = baro.getPressure() * inch_Hg_per_hPa;
+
         int LHS = (int)pressure;
-        Serial.print("LHS: "); Serial.println(LHS);
         int RHS = (int)((pressure - LHS) * 100.0);
+#if DEBUG
+        Serial.print("LHS: "); Serial.println(LHS);
         Serial.print("RHS: "); Serial.println(RHS);
+#endif
         digit_0 = RHS % 10;
         digit_1 = RHS / 10;
         digit_2 = LHS % 10;
         digit_3 = LHS / 10;
         digit_4 = -1;
         digit_5 = -1;
-
+#if DEBUG
         print_digits(true);
-
+#endif
         break;
     }
 

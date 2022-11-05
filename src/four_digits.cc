@@ -76,12 +76,52 @@ volatile int digit_3;
 volatile int digit_4;
 volatile int digit_5;
 
+/**
+ * Print the values of the current digits
+ */
 void print_digits(bool newline) {
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d-%02d-%02d-%02d", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
     Serial.print(str);
     if (newline)
         Serial.println();
+}
+
+/**
+ * Print the current time, formatted
+ */
+void print_time(DateTime dt, bool print_newline = false)
+{
+    char str[64];
+    snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
+             dt.day(), dt.hour(), dt.minute(), dt.second());
+    Serial.print(str);
+    if (print_newline)
+        Serial.println();
+}
+
+/**
+ * Print the current time. Print get_time_duration if it is not zero
+ * @param get_time_duration How long did the last get_time transaction take?
+ */
+void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0)
+{
+    static unsigned int n = 0;
+    Serial.print("Display: ");
+    Serial.print(n++);
+    Serial.print(", ");
+
+    if (get_time_duration != 0)
+    {
+        print_time(dt, false);
+        Serial.print(", I2C time query: ");
+        Serial.print(get_time_duration);
+        Serial.println(" uS");
+    }
+    else
+    {
+        print_time(dt, true);
+    }
 }
 
 // time - enables advancing time without I2C use. This
@@ -122,55 +162,23 @@ void update_display_using_mode() {
 
     case show_date:
         update_display_with_date();
-
+#if DEBUG
         print_digits(true);
-
+#endif
         break;
 
     case show_weather: {
-        // 4 seconds; state 1,2 == temp & humidity, 3,4 baro pressure,
+        // 4 seconds; state 1,2,...n/2 == temp & humidity, n/2,..., N baro pressure,
         static int weather_state = 1;
-        Serial.print("Weather state: ");
-        Serial.println(weather_state);
-        Serial.flush();
         update_display_with_weather(weather_state);
-        weather_state = (weather_state == 8) ? 1 : weather_state + 1;
+        weather_state = (weather_state == WEATHER_DISPLAY_DURATION << 1) ? 1 : weather_state + 1;
 
-        // could return to time here
+        // could return to time here when weather_state == 1 again (after one cycle)
         break;
     }
 
     default:
         break;
-    }
-}
-
-void print_time(DateTime dt, bool print_newline = false) {
-    char str[64];
-    snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
-             dt.day(), dt.hour(), dt.minute(), dt.second());
-    Serial.print(str);
-    if (print_newline)
-        Serial.println();
-}
-
-/**
- * Print the current time. Print get_time_duration if it is not zero
- * @param get_time_duration How long did the last get_time transaction take?
- */
-void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
-    static unsigned int n = 0;
-    Serial.print("Display: ");
-    Serial.print(n++);
-    Serial.print(", ");
-
-    if (get_time_duration != 0) {
-        print_time(dt, false);
-        Serial.print(", I2C time query: ");
-        Serial.print(get_time_duration);
-        Serial.println(" uS");
-    } else {
-        print_time(dt, true);
     }
 }
 
