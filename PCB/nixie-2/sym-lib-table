@@ -3,4 +3,7 @@
   (lib (name "nixie-2-symbols")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/nixie-2-symbols.kicad_sym")(options "")(descr ""))
   (lib (name "arduino")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/downloaded_libs/ARDUINO_PRO_MINI.kicad_sym")(options "")(descr ""))
   (lib (name "adafruit")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/downloaded_libs/adafruit.kicad_sym")(options "")(descr ""))
+  (lib (name "mynixies")(type "Legacy")(uri "/Users/jimg/src/nixie-2/PCB/Eagle-and-KiCAD-Nixie-Libs-master/mynixies.lib")(options "")(descr ""))
+  (lib (name "nixiemisc")(type "Legacy")(uri "/Users/jimg/src/nixie-2/PCB/Eagle-and-KiCAD-Nixie-Libs-master/nixiemisc.lib")(options "")(descr ""))
+  (lib (name "nixies-us")(type "Legacy")(uri "/Users/jimg/src/nixie-2/PCB/Eagle-and-KiCAD-Nixie-Libs-master/nixies-us.lib")(options "")(descr ""))
 )

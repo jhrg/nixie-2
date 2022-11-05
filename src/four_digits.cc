@@ -62,7 +62,7 @@ RTC_DS1307 rtc;
 #endif
 
 extern DHT_Unified dht;
-// DHT_Unified dht(DHTPIN, DHTTYPE);
+extern Adafruit_MPL3115A2 baro;
 
 // The state machine for the display multiplexing
 volatile bool blanking;
@@ -108,11 +108,6 @@ void update_display_with_date()
     digit_5 = dt.month() / 10;
 }
 
-// Set in the test_DHT code called by setup()
-#if 0
-unsigned long DHT_delay_ms = 0; // not used
-#endif
-
 void update_display_using_mode()
 {
     switch (main_mode)
@@ -125,9 +120,14 @@ void update_display_using_mode()
         update_display_with_date();
         break;
 
-    case show_weather:
-        update_display_with_weather();
+    case show_weather: {
+        // 4 seconds; state 1,2 == temp & humidity, 3,4 baro pressure,
+        static int weather_state = 1;
+        update_display_with_weather(weather_state);
+        weather_state = (weather_state == 4) ? 1 : weather_state + 1;
+        // could return to time here
         break;
+    }
 
     default:
         break;
@@ -287,6 +287,16 @@ void setup() {
         // TODO Set error flag
     }
 
+    if (!baro.begin())
+    {
+        Serial.println("Couldn't setup MPL3115A2");
+        Serial.flush();
+        // TODO Set error flag
+    }
+
+    // Temperature and humidity sensor
+    dht.begin();
+
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
     // between the compiled-in times and the set operation.
@@ -319,6 +329,10 @@ void setup() {
     dt = rtc.now();
     print_time(dt, true);
 
+    test_dht_22();
+
+    test_MPL3115A2();
+
     // blank the display
     digit_0 = -1;
     digit_1 = -1;
@@ -326,15 +340,6 @@ void setup() {
     digit_3 = -1;
     digit_4 = -1;
     digit_5 = -1;
-
-#if 0    
-    update_display_with_time();
-#endif
-
-    // Temperature and humidity sensor
-    dht.begin();
-
-    test_dht_22();
 
     // State machine initial conditions:
     // start up as if the display has cycled once through already

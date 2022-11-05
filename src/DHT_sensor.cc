@@ -4,6 +4,7 @@
 #include "DHT_sensor.h"
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
+Adafruit_MPL3115A2 baro;
 
 // The current display digits
 extern volatile int digit_0;
@@ -54,36 +55,80 @@ void test_dht_22()
     Serial.print(sensor.resolution);
     Serial.println(F("%"));
     Serial.println(F("------------------------------------"));
-#if 0
-    DHT_delay_ms = sensor.min_delay / 1000; // not used
-#endif
 }
 
-// Temperature in F
-void update_display_with_weather()
+void test_MPL3115A2()
+{
+    float pressure = baro.getPressure();
+    float altitude = baro.getAltitude();
+    float temperature = baro.getTemperature();
+
+    Serial.println("-----------------");
+    Serial.print("pressure = ");
+    Serial.print(pressure);
+    Serial.println(" hPa");
+    Serial.print("altitude = ");
+    Serial.print(altitude);
+    Serial.println(" m");
+    Serial.print("temperature = ");
+    Serial.print(temperature);
+    Serial.println(" C");
+}
+
+// The weather display is a simple state machine:
+// 1,2: show temperature, humidity
+// 3,4: show pressure
+void update_display_with_weather(int state)
 {
     sensors_event_t event;
 
-    dht.temperature().getEvent(&event);
-    int temp = 0;
-    if (!isnan(event.temperature))
+    switch (state)
     {
-        temp = round(event.temperature * 9.0 / 5.0 + 32.0);
+    case 1:
+    case 2:
+    {
+        dht.temperature().getEvent(&event);
+        int temp = 0;
+        if (!isnan(event.temperature))
+        {
+            temp = round(event.temperature * 9.0 / 5.0 + 32.0);
+        }
+        int rh = 0;
+        // dht.humidity().getEvent(&event);
+        if (!isnan(event.relative_humidity))
+        {
+            rh = round(event.relative_humidity);
+        }
+
+        digit_0 = temp % 10;
+        digit_1 = temp / 10;
+        digit_2 = -1;
+        digit_3 = -1;
+        digit_4 = rh % 10;
+        digit_5 = rh / 10;
+        break;
     }
 
-    digit_0 = temp % 10;
-    digit_1 = temp / 10;
-
-    int rh = 0;
-    dht.humidity().getEvent(&event);
-    if (!isnan(event.relative_humidity))
+    case 3:
+    case 4:
     {
-        rh = round(event.relative_humidity);
+        float pressure = baro.getPressure();
+#if 0
+        float altitude = baro.getAltitude();
+        float temperature = baro.getTemperature();
+#endif
+        int LHS = (int)pressure;
+        int RHS = (int)((pressure - LHS) * 100);
+        digit_0 = RHS % 10;
+        digit_1 = RHS / 10;
+        digit_2 = LHS % 10;
+        digit_3 = LHS / 10;
+        digit_4 = -1;
+        digit_5 = -1;
+        break;
     }
 
-    digit_2 = rh % 10;
-    digit_3 = rh / 10;
-
-    digit_4 = -1;
-    digit_5 = -1;
+    default:
+        break;
+    }
 }
