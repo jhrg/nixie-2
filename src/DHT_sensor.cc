@@ -108,7 +108,9 @@ void update_display_with_weather(int state) {
     case WEATHER_DISPLAY_DURATION:
     {
         // for altitude correction: 1 hPa decrease per 30 feet above MSL
-        float pressure = baro.getPressure() * inch_Hg_per_hPa;
+        float station_msl = 5560.0; // feet
+        float hPa_station_correction = station_msl / 30.0; // pre compute
+        float pressure = (baro.getPressure() + hPa_station_correction) * inch_Hg_per_hPa;
 
         int LHS = (int)pressure;
         int RHS = (int)((pressure - LHS) * 100.0);
