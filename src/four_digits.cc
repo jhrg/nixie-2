@@ -125,6 +125,8 @@ void update_display_using_mode()
         static int weather_state = 1;
         update_display_with_weather(weather_state);
         weather_state = (weather_state == 4) ? 1 : weather_state + 1;
+        Serial.print("Weather state: ");
+        Serial.println(weather_state);
         // could return to time here
         break;
     }
