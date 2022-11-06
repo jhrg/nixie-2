@@ -350,6 +350,8 @@ void setup() {
     Serial.println(__TIME__);
 
     DateTime build_time = DateTime(F(__DATE__), F(__TIME__));
+    TimeSpan ts(16);
+    build_time = build_time + ts;
     DateTime now = rtc.now();
 
     Serial.print(now.unixtime());
@@ -414,12 +416,12 @@ void setup() {
     // time_1Hz_tick() sets a flag that is tested in loop()
     attachInterrupt(digitalPinToInterrupt(CLOCK_1HZ), timer_1HZ_tick_ISR, RISING);
 
-    // MODE_SWITCH is D3
-    pinMode(MODE_SWITCH, INPUT_PULLUP);
+    // MODE_SWITCH is D3, external 1k pullup
+    pinMode(MODE_SWITCH, INPUT);
     attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, FALLING);
 
-    // INPUT_SWITCH is D4
-    pinMode(INPUT_SWITCH, INPUT_PULLUP);
+    // INPUT_SWITCH is D4, external 1k pullup
+    pinMode(INPUT_SWITCH, INPUT);
     attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
 
     // Set up timer 2 - controls the display multiplexing
