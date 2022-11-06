@@ -55,7 +55,6 @@ uint8_t bcd[10] = {
 
 // PORTD, the decimal points
 #define RHDP B00100000 // D5
-#define LHDP B01000000 // D6
 
 #if USE_DS3231
 RTC_DS3231 rtc;
@@ -86,13 +85,6 @@ volatile int d2_rhdp;
 volatile int d3_rhdp;
 volatile int d4_rhdp;
 volatile int d5_rhdp;
-
-volatile int d0_lhdp;
-volatile int d1_lhdp;
-volatile int d2_lhdp;
-volatile int d3_lhdp;
-volatile int d4_lhdp;
-volatile int d5_lhdp;
 
 /**
  * Print the values of the current digits
@@ -203,13 +195,6 @@ void blank_dp()
       d3_rhdp = 0;
       d4_rhdp = 0;
       d5_rhdp = 0;
-
-      d0_lhdp = 0;
-      d1_lhdp = 0;
-      d2_lhdp = 0;
-      d3_lhdp = 0;
-      d4_lhdp = 0;
-      d5_lhdp = 0;
 }
 
 // Set HIGH when the 1 second interrupt been triggered by the clock
@@ -249,8 +234,6 @@ ISR(TIMER2_COMPA_vect) {
                 // Turn on the decimal point(s) if set
                 if (d0_rhdp)
                     PORTD |= RHDP;
-                if (d0_lhdp)
-                    PORTD |= LHDP;
             }
             // move the state to the next digit
             digit += 1;
@@ -263,8 +246,6 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_1;
                 if (d1_rhdp)
                     PORTD |= RHDP;
-                if (d1_lhdp)
-                    PORTD |= LHDP;
             }
             digit += 1;
             break;
@@ -276,8 +257,6 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_2;
                 if (d2_rhdp)
                     PORTD |= RHDP;
-                if (d2_lhdp)
-                    PORTD |= LHDP;
             }
             
             digit += 1;
@@ -290,8 +269,6 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_3;
                 if (d3_rhdp)
                     PORTD |= RHDP;
-                if (d3_lhdp)
-                    PORTD |= LHDP;
             }
             digit += 1;
             break;
@@ -303,8 +280,6 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_4;
                 if (d4_rhdp)
                     PORTD |= RHDP;
-                if (d4_lhdp)
-                    PORTD |= LHDP;
             }
             digit += 1;
             break;
@@ -316,8 +291,6 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_5;
                 if (d5_rhdp)
                     PORTD |= RHDP;
-                if (d5_lhdp)
-                    PORTD |= LHDP;
             }
             digit = 0;
             break;
@@ -332,7 +305,7 @@ ISR(TIMER2_COMPA_vect) {
     } else {
         // blank_display
         PORTB &= B00000000;
-        PORTD &= B10011111;
+        PORTD &= B11011111;
 
         // State is blanking
         blanking = true;
