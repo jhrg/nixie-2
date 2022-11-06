@@ -16,6 +16,20 @@ extern volatile int digit_3;
 extern volatile int digit_4;
 extern volatile int digit_5;
 
+extern volatile int d0_rhdp;
+extern volatile int d1_rhdp;
+extern volatile int d2_rhdp;
+extern volatile int d3_rhdp;
+extern volatile int d4_rhdp;
+extern volatile int d5_rhdp;
+
+extern volatile int d0_lhdp;
+extern volatile int d1_lhdp;
+extern volatile int d2_lhdp;
+extern volatile int d3_lhdp;
+extern volatile int d4_lhdp;
+extern volatile int d5_lhdp;
+
 void test_dht_22() {
     sensor_t sensor;
     dht.temperature().getSensor(&sensor);
@@ -120,6 +134,7 @@ void update_display_with_weather(int state) {
 #endif
         digit_0 = RHS % 10;
         digit_1 = RHS / 10;
+        d2_rhdp = 1;
         digit_2 = LHS % 10;
         digit_3 = LHS / 10;
         digit_4 = -1;

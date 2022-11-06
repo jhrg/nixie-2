@@ -53,10 +53,9 @@ uint8_t bcd[10] = {
 #define DIGIT_4 B00010000 // D12
 #define DIGIT_5 B00100000 // D13
 
-// PORTD
+// PORTD, the decimal points
 #define RHDP B00100000 // D5
-#define RHDP B01100000 // D6
-#define BDP B01100000  // D5 & D6
+#define LHDP B01000000 // D6
 
 #if USE_DS3231
 RTC_DS3231 rtc;
@@ -229,6 +228,12 @@ ISR(TIMER2_COMPA_vect) {
 
                 // Turn on the digit, The digits are blanked below during the blanking state
                 PORTB |= DIGIT_0;
+
+                // Turn on the decimal point(s) if set
+                if (d0_rhdp)
+                    PORTD |= RHDP;
+                if (d0_lhdp)
+                    PORTD |= LHDP;
             }
             // move the state to the next digit
             digit += 1;
@@ -239,6 +244,10 @@ ISR(TIMER2_COMPA_vect) {
             if (digit_1 > -1) {
                 PORTC |= bcd[digit_1];
                 PORTB |= DIGIT_1;
+                if (d1_rhdp)
+                    PORTD |= RHDP;
+                if (d1_lhdp)
+                    PORTD |= LHDP;
             }
             digit += 1;
             break;
@@ -248,9 +257,12 @@ ISR(TIMER2_COMPA_vect) {
             if (digit_2 > -1) {
                 PORTC |= bcd[digit_2];
                 PORTB |= DIGIT_2;
+                if (d2_rhdp)
+                    PORTD |= RHDP;
+                if (d2_lhdp)
+                    PORTD |= LHDP;
             }
-            if (d2_rhdp)
-                PORTD |= RHDP;
+            
             digit += 1;
             break;
 
@@ -259,6 +271,10 @@ ISR(TIMER2_COMPA_vect) {
             if (digit_3 > -1) {
                 PORTC |= bcd[digit_3];
                 PORTB |= DIGIT_3;
+                if (d3_rhdp)
+                    PORTD |= RHDP;
+                if (d3_lhdp)
+                    PORTD |= LHDP;
             }
             digit += 1;
             break;
@@ -268,9 +284,11 @@ ISR(TIMER2_COMPA_vect) {
             if (digit_4 > -1) {
                 PORTC |= bcd[digit_4];
                 PORTB |= DIGIT_4;
+                if (d4_rhdp)
+                    PORTD |= RHDP;
+                if (d4_lhdp)
+                    PORTD |= LHDP;
             }
-            if (d4_rhdp)
-                PORTD |= RHDP;
             digit += 1;
             break;
 
@@ -279,6 +297,10 @@ ISR(TIMER2_COMPA_vect) {
             if (digit_5 > -1) {
                 PORTC |= bcd[digit_5];
                 PORTB |= DIGIT_5;
+                if (d5_rhdp)
+                    PORTD |= RHDP;
+                if (d5_lhdp)
+                    PORTD |= LHDP;
             }
             digit = 0;
             break;
@@ -373,6 +395,9 @@ void setup() {
     digit_4 = -1;
     digit_5 = -1;
 
+    // These don't need to be set to zero to blank, the -1 digit value
+    // blanks the whole tube. But the code might as well start out with
+    // rational values.
     d0_rhdp = 0;
     d1_rhdp = 0;
     d2_rhdp = 0;
