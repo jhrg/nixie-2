@@ -195,6 +195,23 @@ void update_display_using_mode() {
     }
 }
 
+void blank_dp() 
+{
+      d0_rhdp = 0;
+      d1_rhdp = 0;
+      d2_rhdp = 0;
+      d3_rhdp = 0;
+      d4_rhdp = 0;
+      d5_rhdp = 0;
+
+      d0_lhdp = 0;
+      d1_lhdp = 0;
+      d2_lhdp = 0;
+      d3_lhdp = 0;
+      d4_lhdp = 0;
+      d5_lhdp = 0;
+}
+
 // Set HIGH when the 1 second interrupt been triggered by the clock
 volatile byte tick = LOW;
 

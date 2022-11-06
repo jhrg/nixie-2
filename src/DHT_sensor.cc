@@ -30,6 +30,8 @@ extern volatile int d3_lhdp;
 extern volatile int d4_lhdp;
 extern volatile int d5_lhdp;
 
+extern void blank_dp();     // defined in four_digits.cc
+
 void test_dht_22() {
     sensor_t sensor;
     dht.temperature().getSensor(&sensor);
@@ -121,6 +123,8 @@ void update_display_with_weather(int state) {
 
     case WEATHER_DISPLAY_DURATION:
     {
+        blank_dp();
+        
         // for altitude correction: 1 hPa decrease per 30 feet above MSL
         float station_msl = 5560.0; // feet
         float hPa_station_correction = station_msl / 30.0; // pre compute
