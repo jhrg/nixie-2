@@ -350,7 +350,7 @@ void setup() {
     Serial.println(__TIME__);
 
     DateTime build_time = DateTime(F(__DATE__), F(__TIME__));
-    TimeSpan ts(16);
+    TimeSpan ts(ADJUST_TIME);
     build_time = build_time + ts;
     DateTime now = rtc.now();
 

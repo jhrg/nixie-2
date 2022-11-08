@@ -9,7 +9,8 @@ void input_switch_release();
 
 enum modes {
     main,
-    set
+    set_time,
+    set_config
 };
 
 enum main_mode

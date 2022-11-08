@@ -15,6 +15,7 @@ volatile unsigned int input_switch_duration = 0;
 
 volatile enum modes modes = main;
 volatile enum main_mode main_mode = show_time;
+volatile enum set_time_mode set_time_mode = set_hours;
 
 void main_mode_next() {
     switch (main_mode) {
@@ -33,6 +34,44 @@ void main_mode_next() {
     default:
         break;
     }
+}
+
+/*
+   set_hours,
+    adv_hours_slow, // no fast advance for hours
+
+    set_minutes,
+    adv_minutes_slow,
+    adv_minutes_fast,
+
+    zero_seconds
+    */
+void set_time_mode_next() {
+    switch (set_time_mode) {
+        case set_hours:
+        case adv_hours_slow:
+        set_time_mode = set_minutes;
+        break;
+
+        case set_minutes:
+        case adv_minutes_slow:
+        case adv_minutes_fast:
+        set_time_mode = zero_seconds;
+        break;
+
+        case zero_seconds:
+        set_time_mode = set_hours;
+        break;
+
+        default:
+        break;
+    }
+}
+
+void set_time_mode_loop() {
+start:
+
+    goto start;
 }
 
 /**
@@ -54,8 +93,8 @@ void mode_switch_push() {
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
         Serial.println("mode switch push");
         // Triggered on the rising edge is the button press; start the timer
-        mode_switch_time = millis();
         mode_switch_duration = 0;
+        mode_switch_time = interrupt_time;
         attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_release, RISING);
     }
 
@@ -72,13 +111,28 @@ void mode_switch_release() {
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
         Serial.println("mode switch release");
         attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, FALLING);
-        mode_switch_duration = millis() - mode_switch_time;
-        mode_switch_time = millis();
+        mode_switch_duration = interrupt_time - mode_switch_time;
+        mode_switch_time = interrupt_time;
 
+        // In the 'main' mode, a short press changes to set-time mode. A long press 
+        // does nothing.
+        //
+        // In the set_time mode, a short press cycles the set_time modes. A long press
+        // returns to the main mode
         if (mode_switch_duration > LONG_MODE_SWITCH_PRESS) {
-            Serial.println("long press - set time");
+            Serial.println("long press - exit set_time back to main");
+            if (modes == set_time) {
+                modes = main;
+            }
         } else {
-            Serial.println("short press - show weather");
+            Serial.println("short press - set time");
+            if (modes == main) {
+                modes = set_time;
+                set_time_mode = set_hours;
+            }
+            else if (modes == set_time) {
+                set_time_mode_next();
+            }
         }
     }
 
@@ -95,11 +149,7 @@ void input_switch_push() {
         input_switch_duration = 0;
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, RISING);
-
-        main_mode_next();
-        Serial.print("Main mode: ");
-        Serial.println(main_mode);
-    }
+        }
 
     last_interrupt_time = interrupt_time;
 }
@@ -116,7 +166,25 @@ void input_switch_release() {
 
         Serial.print("Duration: ");
         Serial.println(input_switch_duration);
-    }
+
+        if (modes == main) {
+            main_mode_next();
+            Serial.print("Main mode: ");
+            Serial.println(main_mode);
+        }
+        else if (modes == set_time) {
+            if (input_switch_duration > LONG_MODE_SWITCH_PRESS) {
+                if (set_time_mode == set_hours) {
+                    set_time_mode = adv_hours_slow;
+                }
+            }
+            else {
+                set_time_mode_next();
+            }
+            Serial.print("set_time mode: ");
+            Serial.println(set_time_mode);
+        }
+     }
 
     last_interrupt_time = interrupt_time;
 }
