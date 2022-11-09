@@ -238,6 +238,7 @@
         )
       )
     )
+
     (symbol "nixie-1:Z57xM" (pin_names (offset 1.016)) (in_bom yes) (on_board yes)
       (property "Reference" "V" (id 0) (at -7.62 8.89 0)
         (effects (font (size 1.27 1.27)))
@@ -555,6 +556,8 @@
     )
     (path "/fcee0de7-d38d-4323-aa93-a47d894a62af"
       (reference "V?") (unit 1) (value "Z57xM") (footprint "")
+    (path "/39cf93f6-4fc8-42ac-abab-83e65b5f03d5"
+      (reference "U?") (unit 1) (value "ARDUINO_PRO_MINI") (footprint "MODULE_ARDUINO_PRO_MINI")
     )
   )
 )

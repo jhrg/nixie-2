@@ -1,7 +1,0 @@
-(sym_lib_table
-  (lib (name "MUR160G")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/KiCAD/2022-10-24_21-01-44/2022-10-24_21-01-44.kicad_sym")(options "")(descr ""))
-  (lib (name "nixie-1")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/kicad_nixie/nixie.kicad_sym")(options "")(descr ""))
-  (lib (name "nixie-2")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/Eagle-and-KiCAD-Nixie-Libs/mynixies.kicad_sym")(options "")(descr ""))
-  (lib (name "nixie-3")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/Eagle-and-KiCAD-Nixie-Libs/nixiemisc.kicad_sym")(options "")(descr ""))
-  (lib (name "nixie-4")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/Eagle-and-KiCAD-Nixie-Libs/nixies-us.kicad_sym")(options "")(descr ""))
-)
