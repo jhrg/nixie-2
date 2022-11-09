@@ -1,4 +1,4 @@
-20448937775942084
+20453936702239237
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -85987,6 +85987,237 @@ varistor
 0
 2
 2
+mynixies
+mynixies-214-3339-00-0602J
+3M TEXTOOL 14 POL. DIP LEVER ACTUATED ZERO INSERTION FORCE MECHANISM
+3M TEXTOOL 14 POL. DIP LEVER ACTUATED ZERO INSERTION FORCE MECHANISM
+0
+14
+14
+mynixies
+mynixies-5991-D-SUB
+
+
+0
+11
+11
+mynixies
+mynixies-6844A-D-SUB
+THIS FOOTPRINT USES FEMALE D-SUB PINS AS 'SOCKETS'.
+THIS FOOTPRINT USES FEMALE D-SUB PINS AS 'SOCKETS'.
+0
+13
+13
+mynixies
+mynixies-B13B
+SOCKET B13B PRINT
+SOCKET B13B PRINT
+0
+13
+13
+mynixies
+mynixies-B17A-8331
+
+
+0
+13
+13
+mynixies
+mynixies-B17A-DSUB
+
+
+0
+11
+11
+mynixies
+mynixies-B5441-DSUB
+
+
+0
+13
+13
+mynixies
+mynixies-B5441-DSUB-ALLPINS
+
+
+0
+16
+16
+mynixies
+mynixies-CD11
+
+
+0
+14
+14
+mynixies
+mynixies-CK1806
+
+
+0
+11
+11
+mynixies
+mynixies-GR10K
+
+
+0
+11
+11
+mynixies
+mynixies-IN-8-8331
+
+
+0
+11
+11
+mynixies
+mynixies-ITS1A
+
+
+0
+12
+12
+mynixies
+mynixies-NE2-NEON-BULB-DRILL
+NE2 NEON-BULB (CABLE MOUNTING-HOLE)
+NE2 NEON-BULB (CABLE MOUNTING-HOLE)
+0
+2
+2
+mynixies
+mynixies-NE2-NEON-BULB-SMD
+NE2 NEON-BULB (CABLE ON SURFACE MOUNT)
+NE2 NEON-BULB (CABLE ON SURFACE MOUNT)
+0
+2
+2
+mynixies
+mynixies-RTS-5-DSUB
+
+
+0
+11
+11
+mynixies
+mynixies-RTS-5-DSUB-ALLPINS
+
+
+0
+17
+17
+mynixies
+mynixies-RTS-5-DUAL
+
+
+0
+12
+12
+mynixies
+mynixies-RTS-5-DUAL-ALLPINS
+
+
+0
+12
+12
+mynixies
+mynixies-RTS-5-TOP-VIEW
+
+
+0
+12
+12
+mynixies
+mynixies-RTS-11-DSUB
+
+
+0
+11
+11
+mynixies
+mynixies-RTS-14-DSUB
+
+
+0
+14
+14
+mynixies
+mynixies-SK-116-1
+
+
+0
+11
+11
+mynixies
+mynixies-TBS-12P-SUPPORT
+
+
+0
+0
+0
+mynixies
+mynixies-TSB-12P-CONTACT
+
+
+0
+11
+11
+mynixies
+mynixies-TSB-12P-MILL-MAX
+
+
+0
+12
+12
+mynixies
+mynixies-ZIN18
+
+
+0
+11
+11
+mynixies
+mynixies-ZM1000-DSUB
+
+
+0
+14
+14
+mynixies
+mynixies-ZM1042-8331
+SOCKET WITH D-SUB SOCKETS
+SOCKET WITH D-SUB SOCKETS
+0
+13
+13
+mynixies
+mynixies-ZM1042-AMP
+SOCKET WITH AMP-DISCRET SOCKET CONTACT TYP 1-380758-1
+SOCKET WITH AMP-DISCRET SOCKET CONTACT TYP 1-380758-1
+0
+13
+13
+mynixies
+mynixies-ZM1042-DSUB
+SOCKET WITH D-SUB SOCKETS
+SOCKET WITH D-SUB SOCKETS
+0
+13
+13
+mynixies
+mynixies-ZM1042-MULTI-CONTACT
+SOCKET WITH MULTI-CONTACT (MINI-LINE DISCRET SOCKET CONTACT) TYP B1-B 41.0002
+SOCKET WITH MULTI-CONTACT (MINI-LINE DISCRET SOCKET CONTACT) TYP B1-B 41.0002
+0
+13
+13
+mynixies
+mynixies-ZM1232SPECIAL
+
+
+0
+11
+11
 nixie-footprints
 mynixies-214-3339-00-0602J
 3M TEXTOOL 14 POL. DIP LEVER ACTUATED ZERO INSERTION FORCE MECHANISM
@@ -86001,3 +86232,724 @@ MAY BE USED WITH SOCKET: U11
 0
 11
 11
+nixiemisc
+nixiemisc-2-SMD
+
+
+0
+2
+2
+nixiemisc
+nixiemisc-2X06
+PIN HEADER
+PIN HEADER
+0
+12
+12
+nixiemisc
+nixiemisc-4PINDOUBLE
+
+
+0
+8
+8
+nixiemisc
+nixiemisc-4PINDOUBLEBIG
+
+
+0
+8
+8
+nixiemisc
+nixiemisc-4PINDOUBLEMIL
+
+
+0
+8
+8
+nixiemisc
+nixiemisc-7395-03
+KK® 254 WIRE-TO-BOARD HEADER, RIGHT ANGLE, WITH FRICTION LOCK, 3 CIRCUITSDATASHEET
+KK® 254 WIRE-TO-BOARD HEADER, RIGHT ANGLE, WITH FRICTION LOCK, 3 CIRCUITSDATASHEET
+0
+3
+3
+nixiemisc
+nixiemisc-B3U-1100P(M)
+
+
+0
+3
+3
+nixiemisc
+nixiemisc-CRYSTAL-SMD-2.0X1.6MM
+2.0 X 1.6 MM CRYSTAL
+2.0 X 1.6 MM CRYSTAL
+0
+4
+4
+nixiemisc
+nixiemisc-CRYSTAL2.0X1.6
+
+
+0
+4
+4
+nixiemisc
+nixiemisc-DA2032-AL
+
+
+0
+12
+12
+nixiemisc
+nixiemisc-DIL28-3
+DUAL IN LINE
+DUAL IN LINE
+0
+28
+28
+nixiemisc
+nixiemisc-DIL28-3-ROUND
+
+
+0
+28
+28
+nixiemisc
+nixiemisc-DIP16
+DUAL IN LINE PACKAGE
+DUAL IN LINE PACKAGE
+0
+16
+16
+nixiemisc
+nixiemisc-DO-214AC
+SURFACE MOUNT GENERAL RECTIFIER JEDEC DO-214AC MOLDED PLATIC BODY
+SURFACE MOUNT GENERAL RECTIFIER JEDEC DO-214AC MOLDED PLATIC BODY
+0
+2
+2
+nixiemisc
+nixiemisc-DO-219AB
+
+
+0
+2
+2
+nixiemisc
+nixiemisc-DRC0010G
+
+
+0
+11
+11
+nixiemisc
+nixiemisc-EDGE_2X10
+
+
+0
+3
+3
+nixiemisc
+nixiemisc-ESP-01
+PIN HEADER
+PIN HEADER
+0
+8
+8
+nixiemisc
+nixiemisc-ESPRESSIF_SYSTEMS_ESP32-PICO-D4_0
+ESP32 BLUETOOTH MODULE
+ESP32 BLUETOOTH MODULE
+0
+49
+49
+nixiemisc
+nixiemisc-HVPS1363
+
+
+0
+0
+0
+nixiemisc
+nixiemisc-KEYSTONE1
+
+
+0
+0
+0
+nixiemisc
+nixiemisc-KEYSTONE2
+
+
+0
+0
+0
+nixiemisc
+nixiemisc-LED_SQUARE_3MM
+LED
+LED
+0
+2
+2
+nixiemisc
+nixiemisc-LGA-16-3X3
+16-PIN LAND GRID ARRAY (LGA) (3 X 3 MM)
+16-PIN LAND GRID ARRAY (LGA) (3 X 3 MM)
+0
+16
+16
+nixiemisc
+nixiemisc-MAX98357A
+
+
+0
+9
+9
+nixiemisc
+nixiemisc-MICROSD
+
+
+0
+12
+12
+nixiemisc
+nixiemisc-MS13ASW30
+
+
+0
+5
+5
+nixiemisc
+nixiemisc-MSOP08
+MINI SMALL OUTLINE PACKAGE
+MINI SMALL OUTLINE PACKAGE
+0
+8
+8
+nixiemisc
+nixiemisc-NA5880-AE
+
+
+0
+4
+4
+nixiemisc
+nixiemisc-PAD
+
+
+0
+1
+1
+nixiemisc
+nixiemisc-PDSO-N12
+12-PIN VSON 2.5 X 4.0 MM IC
+12-PIN VSON 2.5 X 4.0 MM IC
+0
+17
+17
+nixiemisc
+nixiemisc-PLCC44
+PLASTIC LEADED CHIP CARRIER
+PLASTIC LEADED CHIP CARRIER
+0
+44
+44
+nixiemisc
+nixiemisc-POWERSO8
+SOIC, 0.15 INCH WIDTH
+SOIC, 0.15 INCH WIDTH
+0
+9
+9
+nixiemisc
+nixiemisc-PQFN50P300X300X100-16N
+
+
+0
+16
+16
+nixiemisc
+nixiemisc-PQFN50P700X700X104-49N
+
+
+0
+49
+49
+nixiemisc
+nixiemisc-QFN-32
+QFN 32-PIN PACKAGE W/ THERMAL PAD
+QFN 32-PIN PACKAGE W/ THERMAL PAD
+0
+33
+33
+nixiemisc
+nixiemisc-QFN-44-7X7
+QFN-44 (7X7X1.8MM)
+QFN-44 (7X7X1.8MM)
+0
+45
+45
+nixiemisc
+nixiemisc-QFN-48
+48-PIN QFN (7X7MM, 0.5MM PITCH)
+48-PIN QFN (7X7MM, 0.5MM PITCH)
+0
+49
+49
+nixiemisc
+nixiemisc-QFN16
+RTE (S-PQFP-N16) 3X3 MM
+RTE (S-PQFP-N16) 3X3 MM
+0
+17
+17
+nixiemisc
+nixiemisc-QFN20
+
+
+0
+21
+21
+nixiemisc
+nixiemisc-QFN24-4X4
+UF PACKAGE 24-LEAD (4MM × 4MM) PLASTIC QFN
+UF PACKAGE 24-LEAD (4MM × 4MM) PLASTIC QFN
+0
+25
+25
+nixiemisc
+nixiemisc-QFN28-ML_6X6MM
+QFN28-ML_6X6MM
+QFN28-ML_6X6MM
+0
+29
+29
+nixiemisc
+nixiemisc-QFN28G_0.5-5X5MM
+
+
+0
+29
+29
+nixiemisc
+nixiemisc-QFN32
+QFN 32
+QFN 32
+0
+33
+33
+nixiemisc
+nixiemisc-QFN48_7X7
+
+
+0
+49
+49
+nixiemisc
+nixiemisc-S8E
+SOIC, 0.15 INCH WIDTH
+SOIC, 0.15 INCH WIDTH
+0
+9
+9
+nixiemisc
+nixiemisc-S44
+PLCC SOCKET
+PLCC SOCKET
+0
+44
+44
+nixiemisc
+nixiemisc-SO-08
+SMALL OUTLINE NARROW PLASTIC GULL WING
+SMALL OUTLINE NARROW PLASTIC GULL WING
+0
+8
+8
+nixiemisc
+nixiemisc-SO08
+SOIC, 0.15 INCH WIDTH
+SOIC, 0.15 INCH WIDTH
+0
+8
+8
+nixiemisc
+nixiemisc-SO14
+SMALL OUTLINE PACKAGE 150 MIL
+SMALL OUTLINE PACKAGE 150 MIL
+0
+14
+14
+nixiemisc
+nixiemisc-SO28W
+28-LEAD PLASTIC SMALL OUTLINE (SO)  WIDE, 300 MIL BODY (SOIC)
+28-LEAD PLASTIC SMALL OUTLINE (SO)  WIDE, 300 MIL BODY (SOIC)
+0
+28
+28
+nixiemisc
+nixiemisc-SOIC8
+SMALL OUTLINE IC
+SMALL OUTLINE IC
+0
+8
+8
+nixiemisc
+nixiemisc-SOIC16-5.3MM
+
+
+0
+16
+16
+nixiemisc
+nixiemisc-SOT23
+SOT-23
+SOT-23
+0
+3
+3
+nixiemisc
+nixiemisc-SOT23-5
+
+
+0
+5
+5
+nixiemisc
+nixiemisc-SOT23-BEC
+TO-236 ITT INTERMETALL
+TO-236 ITT INTERMETALL
+0
+3
+3
+nixiemisc
+nixiemisc-SOT25
+SMALL OUTLINE TRANSISTOR
+SMALL OUTLINE TRANSISTOR
+0
+5
+5
+nixiemisc
+nixiemisc-SOT143
+SOT-143
+SOT-143
+0
+4
+4
+nixiemisc
+nixiemisc-SOT143R_INFINEON
+SMALL OUTLINE TRANSISTOR; 4 LEADS REFLOW SOLDERING
+SMALL OUTLINE TRANSISTOR; 4 LEADS REFLOW SOLDERING
+0
+4
+4
+nixiemisc
+nixiemisc-SSOP28
+SHRINK SMALL OUTLINE PACKAGE
+SHRINK SMALL OUTLINE PACKAGE
+0
+28
+28
+nixiemisc
+nixiemisc-THT-100-35
+
+
+0
+2
+2
+nixiemisc
+nixiemisc-THT-150-35
+
+
+0
+2
+2
+nixiemisc
+nixiemisc-TL3XPO
+TINY SWITCH
+TINY SWITCH
+0
+3
+3
+nixiemisc
+nixiemisc-TO92
+TO 92
+TO 92
+0
+3
+3
+nixiemisc
+nixiemisc-TO236
+DIODE
+DIODE
+0
+3
+3
+nixiemisc
+nixiemisc-TSSOP-16
+16-LEAD THIN SHRINK SMALL OUTLINE PACKAGE [TSSOP] (RU-16)
+16-LEAD THIN SHRINK SMALL OUTLINE PACKAGE [TSSOP] (RU-16)
+0
+16
+16
+nixiemisc
+nixiemisc-U.FL
+
+
+0
+3
+3
+nixiemisc
+nixiemisc-UMT6
+UMT6 PACKAGE EIAJ: SC-88
+UMT6 PACKAGE EIAJ: SC-88
+0
+6
+6
+nixiemisc
+nixiemisc-UQFN-10
+
+
+0
+10
+10
+nixiemisc
+nixiemisc-USB-MINIB-THM-MOLEX-PWRONLY
+
+
+0
+4
+4
+nixiemisc
+nixiemisc-VQFN-14
+
+
+0
+15
+15
+nixiemisc
+nixiemisc-WE-750313457
+
+
+0
+8
+8
+nixiemisc
+nixiemisc-WE-750315839
+
+
+0
+10
+10
+nixiemisc
+nixiemisc-WE-74438356010
+
+
+0
+2
+2
+nixiemisc
+nixiemisc-WE-FLEX_EFD15
+
+
+0
+12
+12
+nixiemisc
+nixiemisc-WE-FLEX_EFD20
+
+
+0
+12
+12
+nixiemisc
+nixiemisc-WE-FLEX_ER11_5
+
+
+0
+12
+12
+nixiemisc
+nixiemisc-WE-FLEX_ER14.5_6
+
+
+0
+12
+12
+nixiemisc
+nixiemisc-WE-MCA_7488910043
+MULTILAYER CHIP ANTENNA --
+MULTILAYER CHIP ANTENNA --
+0
+2
+2
+nixiemisc
+nixiemisc-WE-MCA_7488910157
+MULTIPLAYER CHIP ANTENNA WE-MCA
+MULTIPLAYER CHIP ANTENNA WE-MCA
+0
+2
+2
+nixiemisc
+nixiemisc-WE-MCA_7488910245
+MULTIPLAYER CHIP ANTENNA WE-MCA
+MULTIPLAYER CHIP ANTENNA WE-MCA
+0
+2
+2
+nixiemisc
+nixiemisc-WE-MCA_7488930245
+MULTIPLAYER CHIP ANTENNA WE-MCA
+MULTIPLAYER CHIP ANTENNA WE-MCA
+0
+2
+2
+nixiemisc
+nixiemisc-WE-MCA_7488105XX_7488940245
+MULTIPLAYER CHIP ANTENNA WE-MCA
+MULTIPLAYER CHIP ANTENNA WE-MCA
+0
+2
+2
+nixies-us
+nixies-us-IN-1
+MAY BE USED WITH SOCKET: U11
+MAY BE USED WITH SOCKET: U11
+0
+11
+11
+nixies-us
+nixies-us-IN-2
+MAY BE USED WITH SOCKET: 11-PIN- RUSSIAN
+MAY BE USED WITH SOCKET: 11-PIN- RUSSIAN
+0
+11
+11
+nixies-us
+nixies-us-IN-2-DSUB
+
+
+0
+11
+11
+nixies-us
+nixies-us-IN-3
+
+
+0
+2
+2
+nixies-us
+nixies-us-IN-4-DSUB
+MAY BE USED WITH SOCKET: PL31-P
+MAY BE USED WITH SOCKET: PL31-P
+0
+14
+14
+nixies-us
+nixies-us-IN-4-DSUB-SPARSE
+MAY BE USED WITH SOCKET: PL31-P
+MAY BE USED WITH SOCKET: PL31-P
+0
+11
+11
+nixies-us
+nixies-us-IN-6
+
+
+0
+2
+2
+nixies-us
+nixies-us-IN-8
+MAY BE USED WITH SOCKET: 11-PIN- RUSSIAN
+MAY BE USED WITH SOCKET: 11-PIN- RUSSIAN
+0
+11
+11
+nixies-us
+nixies-us-IN-8-2
+
+
+0
+12
+12
+nixies-us
+nixies-us-IN-9
+
+
+0
+2
+2
+nixies-us
+nixies-us-IN-12
+MAY BE USED WITH SOCKET: SK-136
+MAY BE USED WITH SOCKET: SK-136
+0
+12
+12
+nixies-us
+nixies-us-IN-12-DSUB
+FOR USE WITH FEMALE D-SUB PINS
+FOR USE WITH FEMALE D-SUB PINS
+0
+12
+12
+nixies-us
+nixies-us-IN-12-DSUB-NOHOLE
+FOR USE WITH FEMALE D-SUB PINS
+FOR USE WITH FEMALE D-SUB PINS
+0
+12
+12
+nixies-us
+nixies-us-IN-13
+
+
+0
+3
+3
+nixies-us
+nixies-us-IN-14
+
+
+0
+13
+13
+nixies-us
+nixies-us-IN-16
+
+
+0
+13
+13
+nixies-us
+nixies-us-IN-17
+
+
+0
+11
+11
+nixies-us
+nixies-us-IN-18
+MAY BE USED WITH SOCKET: PL31-P
+MAY BE USED WITH SOCKET: PL31-P
+0
+14
+14
+nixies-us
+nixies-us-IN-18-DSUB
+MAY BE USED WITH SOCKET: PL31-P
+MAY BE USED WITH SOCKET: PL31-P
+0
+14
+14
+nixies-us
+nixies-us-IN-19
+
+
+0
+13
+13
