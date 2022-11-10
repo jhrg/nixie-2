@@ -121,16 +121,20 @@ void mode_switch_release() {
         // returns to the main mode
         if (mode_switch_duration > LONG_MODE_SWITCH_PRESS) {
             Serial.println("long press - exit set_time back to main");
-            if (modes == set_time) {
-                modes = main;
-            }
-        } else {
-            Serial.println("short press - set time");
-            if (modes == main) {
+            if (modes == main)
+            {
                 modes = set_time;
                 set_time_mode = set_hours;
+                set_time_mode_loop();
             }
-            else if (modes == set_time) {
+            else if (modes == set_time)
+            {
+                modes = main;
+                loop();
+            }
+        } else {
+            Serial.println("short press - set time next");
+            if (modes == set_time) {
                 set_time_mode_next();
             }
         }
