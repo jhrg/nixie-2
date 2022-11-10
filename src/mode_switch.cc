@@ -125,12 +125,10 @@ void mode_switch_release() {
             {
                 modes = set_time;
                 set_time_mode = set_hours;
-                set_time_mode_loop();
             }
             else if (modes == set_time)
             {
                 modes = main;
-                loop();
             }
         } else {
             Serial.println("short press - set time next");
