@@ -1,6 +1,7 @@
 
 #include <Arduino.h>
 #include <PinChangeInterrupt.h>
+#include <RTClib.h>
 
 #include "mode_switch.h"
 
@@ -69,8 +70,111 @@ void set_time_mode_next() {
     }
 }
 
-void set_time_mode_handler() {
+// Set by the 1 Hz interrupt
+extern volatile byte tick;
 
+volatile unsigned int set_time_mode_handler_prev = 0;
+volatile unsigned int set_time_mode_handler_time = 0;
+volatile unsigned int set_time_mode_handler_duration = 0;
+
+// Called from the main loop frequently
+void set_time_mode_handler()
+{
+#if 0
+    set_time_mode_handler_prev = set_time_mode_handler_time;
+    set_time_mode_handler_time = millis();
+    set_time_mode_handler_duration = (set_time_mode_handler_prev != 0) ? set_time_mode_handler_time - set_time_mode_handler_prev : 0;
+
+    static int tick_count = 0;
+    cli(); // Protect 'tick' against update while in use
+    if (tick)
+    {
+        tick = LOW;
+        tick_count++;
+    }
+    sei();
+
+    switch (set_time_mode)
+    {
+    case set_hours:
+    case adv_hours_slow:
+
+        break;
+
+    case set_minutes:
+    case adv_minutes_slow:
+    case adv_minutes_fast:
+
+        break;
+
+    case zero_seconds:
+
+        break;
+
+    default:
+        break;
+    }
+
+    //update_display_using_mode();
+#endif
+}
+
+// This is clock's time, updated when set-time mode is exited
+extern DateTime dt;
+
+#if USE_DS3231
+extern RTC_DS3231 rtc;
+#elif USE_DS1307
+extern RTC_DS1307 rtc;
+#else
+#error "Must define one of DS3231 or DS1307"
+#endif
+
+DateTime new_dt; // initialized to 'dt' when set_time mode is entered
+
+void set_time_mode_advance_by_one()
+{
+
+    switch (set_time_mode)
+    {
+    case set_hours:
+    case adv_hours_slow:
+    {
+        if (new_dt.hour() == 23)
+        {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
+        }
+        else
+        {
+            uint8_t hour = new_dt.hour() + 1;
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), hour, new_dt.minute(), new_dt.second());
+        }
+        break;
+    }
+
+    case set_minutes:
+    case adv_minutes_slow:
+    case adv_minutes_fast:
+    {
+        if (new_dt.minute() == 59)
+        {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
+        }
+        else
+        {
+            uint8_t minute = new_dt.minute() + 1;
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), minute, new_dt.second());
+        }
+        break;
+    }
+
+    case zero_seconds:
+        new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), 0);
+        break;
+
+    default:
+        break;
+    }
 }
 
 /**
@@ -131,11 +235,16 @@ void mode_switch_release() {
                 Serial.println("set time");
                 mode = set_time;
                 set_time_mode = set_hours;
+
+                new_dt = dt; // initialize the new DateTime object to now
             }
             else if (mode == set_time)
             {
                 Serial.println("main");
                 mode = main;
+
+                rtc.adjust(new_dt); // Set the current time
+                dt = rtc.now();     // update global time.
             }
             else
             {
@@ -206,6 +315,7 @@ void input_switch_release()
         else if (mode == set_time) {
             Serial.print("Main mode: ");
             Serial.println(set_time_mode);
+            set_time_mode_advance_by_one();
         }
 #endif
     }

@@ -449,7 +449,7 @@ void setup() {
     sei(); // start interrupts
 }
 
-void main_mode_update()
+void main_mode_handler()
 {
     static int tick_count = 0;
     bool get_time = false;
@@ -491,15 +491,9 @@ void main_mode_update()
     if (get_time)
     {
         get_time = false;
-        // TODO Remove this timing stuff. 11/10/22
-        uint32_t start_get_time = micros();
-        dt = rtc.now();
-        uint32_t get_time_duration = micros() - start_get_time;
+        dt = rtc.now(); // This call takes about 1ms
 
         update_display_using_mode();
-
-        if (Serial)
-            display_monitor_info(dt, get_time_duration);
     }
 
     if (update_display)
@@ -508,10 +502,10 @@ void main_mode_update()
 
 void loop() {
     if (mode == main) {
-        main_mode_update();
+        main_mode_handler();
     }
     else if (mode == set_time) {
-        // moop
+        set_time_mode_handler();
     }
     else {
         // noo
