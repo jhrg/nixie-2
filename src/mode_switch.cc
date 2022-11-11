@@ -5,9 +5,9 @@
 
 #include "mode_switch.h"
 
-#define SWITCH_INTERVAL 150  // ms
-#define SWITCH_PRESS_2S 2000 // 2 Seconds
-#define SWITCH_PRESS_5S 5000 // 5 S
+#define SWITCH_INTERVAL 150    // ms
+#define SWITCH_PRESS_2S 2000   // 2 Seconds
+#define SWITCH_PRESS_5S 5000   // 5 S
 #define SWITCH_PRESS_10S 10000 // 10 S
 
 volatile unsigned int mode_switch_time = 0;
@@ -92,19 +92,13 @@ volatile unsigned int set_time_mode_handler_duration = 0;
 // Called by an interrupt handler - no I2C
 // TODO Change that so that set_time_mode_handler() calls this and the zero_seconds
 //  state calls adjust().
-void set_time_mode_advance_by_one()
-{
-    switch (set_time_mode)
-    {
+void set_time_mode_advance_by_one() {
+    switch (set_time_mode) {
     case set_hours:
-    case adv_hours_slow:
-    {
-        if (new_dt.hour() == 23)
-        {
+    case adv_hours_slow: {
+        if (new_dt.hour() == 23) {
             new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
-        }
-        else
-        {
+        } else {
             uint8_t hour = new_dt.hour() + 1;
             new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), hour, new_dt.minute(), new_dt.second());
         }
@@ -113,14 +107,10 @@ void set_time_mode_advance_by_one()
 
     case set_minutes:
     case adv_minutes_slow:
-    case adv_minutes_fast:
-    {
-        if (new_dt.minute() == 59)
-        {
+    case adv_minutes_fast: {
+        if (new_dt.minute() == 59) {
             new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), 0, new_dt.second());
-        }
-        else
-        {
+        } else {
             uint8_t minute = new_dt.minute() + 1;
             new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), minute, new_dt.second());
         }
@@ -142,8 +132,7 @@ unsigned int last_input_call_time = 0;
 #define ADVANCE 1000
 
 // Called from the main loop frequently
-void set_time_mode_handler()
-{
+void set_time_mode_handler() {
     digit_0 = new_dt.second() % 10;
     digit_1 = new_dt.second() / 10;
 
@@ -153,45 +142,41 @@ void set_time_mode_handler()
     digit_4 = new_dt.hour() % 10;
     digit_5 = new_dt.hour() / 10;
 
+    if (input_switch_press || input_switch_released) {
+        char msg[128];
+        snprintf(msg, sizeof(msg), "isp: %d, isr: %d, is duration: %d, is time: %d",
+                 input_switch_press, input_switch_released, input_switch_duration, input_switch_time);
+        Serial.println(msg);
+    }
+
     // if the switch was not held down for 2s or longer
-    if (input_switch_released && input_switch_duration < SWITCH_PRESS_2S)
-    {
+    if (input_switch_released && input_switch_duration < SWITCH_PRESS_2S) {
         set_time_mode_advance_by_one();
-    }
-    else if (input_switch_press && !input_switch_released)
-    {
+    } else if (input_switch_press && !input_switch_released) {
+        Serial.print("In the button held code");
         unsigned int duration = millis() - input_switch_time;
-        if (duration > SWITCH_PRESS_10S)
-        {
+        if (duration > SWITCH_PRESS_10S) {
             // call set_time_mode_advance_by_one() really often - once every 10ms
-            if ((last_input_call_time = 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST))
-            {
+            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
                 set_time_mode_advance_by_one();
                 last_input_call_time = millis();
             }
-        }
-        else if (duration > SWITCH_PRESS_5S)
-        {
+        } else if (duration > SWITCH_PRESS_5S) {
             // call set_time_mode_advance_by_one() really often - once every 100ms
-            if ((last_input_call_time = 0) || (millis() - last_input_call_time > ADVANCE_FAST))
-            {
+            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_FAST)) {
                 set_time_mode_advance_by_one();
                 last_input_call_time = millis();
             }
-        }
-        else
-        {
+        } else {
             // call set_time_mode_advance_by_one() really often - once every 1000ms
-            if ((last_input_call_time = 0) || (millis() - last_input_call_time > ADVANCE))
-            {
+            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE)) {
                 set_time_mode_advance_by_one();
                 last_input_call_time = millis();
             }
         }
     }
-    
-    if (input_switch_released)
-    {
+
+    if (input_switch_released) {
         input_switch_released = false; // input_switch_released is only reset in this function
         last_input_call_time = 0;
         if (set_time_mode == zero_seconds) {
@@ -327,6 +312,8 @@ void input_switch_push() {
         Serial.print("input switch press, ");
         input_switch_time = interrupt_time;
         input_switch_duration = 0;
+        input_switch_press = true;
+        input_switch_released = false;
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, RISING);
     }
@@ -351,7 +338,7 @@ void input_switch_release() {
 
         input_switch_press = false;
         input_switch_released = true; // reset above
-#if 1
+#if 0
         if (mode == main)
         {
             Serial.print("Main mode: ");
