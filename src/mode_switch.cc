@@ -5,7 +5,8 @@
 #include "mode_switch.h"
 
 #define SWITCH_INTERVAL 150 // ms
-#define LONG_MODE_SWITCH_PRESS 2000
+#define MODE_SWITCH_PRESS_2S 2000 // 2 Seconds
+#define MODE_SWITCH_PRESS_5S 5000 // 5 S
 
 volatile unsigned int mode_switch_time = 0;
 volatile unsigned int mode_switch_duration = 0;
@@ -119,21 +120,48 @@ void mode_switch_release() {
         //
         // In the set_time mode, a short press cycles the set_time modes. A long press
         // returns to the main mode
-        if (mode_switch_duration > LONG_MODE_SWITCH_PRESS) {
-            Serial.println("long press - exit set_time back to main");
+        if (mode_switch_duration > MODE_SWITCH_PRESS_5S)
+        {
+            // noop for now
+            Serial.println("very long press: ?");
+        }
+        else if (mode_switch_duration > MODE_SWITCH_PRESS_2S)
+        {
+            Serial.print("long press: ");
             if (modes == main)
             {
+                Serial.println("set time");
                 modes = set_time;
                 set_time_mode = set_hours;
             }
             else if (modes == set_time)
             {
+                Serial.println("main");
                 modes = main;
             }
-        } else {
-            Serial.println("short press - set time next");
-            if (modes == set_time) {
+            else
+            {
+                Serial.println("?");
+            }
+        }
+        else
+        {
+            Serial.print("short press: ");
+            if (modes == main)
+            {
+                main_mode_next();
+                Serial.print("Main mode ");
+                Serial.println(main_mode);
+            }
+            else if (modes == set_time)
+            {
                 set_time_mode_next();
+                Serial.print("set_time mode ");
+                Serial.println(set_time_mode);
+            }
+            else
+            {
+                Serial.println("?");
             }
         }
     }
@@ -141,26 +169,30 @@ void mode_switch_release() {
     last_interrupt_time = interrupt_time;
 }
 
-void input_switch_push() {
+void input_switch_push()
+{
     static unsigned long last_interrupt_time = 0;
     unsigned long interrupt_time = millis();
 
-    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
+    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL)
+    {
         Serial.print("input switch press, ");
         input_switch_time = interrupt_time;
         input_switch_duration = 0;
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, RISING);
-        }
+    }
 
     last_interrupt_time = interrupt_time;
 }
 
-void input_switch_release() {
+void input_switch_release()
+{
     static unsigned long last_interrupt_time = 0;
     unsigned long interrupt_time = millis();
 
-    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
+    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL)
+    {
         Serial.print("input switch release, ");
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
@@ -168,7 +200,7 @@ void input_switch_release() {
 
         Serial.print("Duration: ");
         Serial.println(input_switch_duration);
-
+#if 0
         if (modes == main) {
             main_mode_next();
             Serial.print("Main mode: ");
@@ -186,7 +218,8 @@ void input_switch_release() {
             Serial.print("set_time mode: ");
             Serial.println(set_time_mode);
         }
-     }
+#endif
+    }
 
     last_interrupt_time = interrupt_time;
 }
