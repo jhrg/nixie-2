@@ -15,7 +15,7 @@
 extern volatile enum modes modes;
 extern volatile enum main_mode main_mode;
 
-#define BAUD_RATE 9600
+#define BAUD_RATE 115200 // old: 9600
 #define CLOCK_QUERY_INTERVAL 100 // seconds
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
