@@ -5,8 +5,8 @@
 #include "mode_switch.h"
 
 #define SWITCH_INTERVAL 150 // ms
-#define MODE_SWITCH_PRESS_2S 2000 // 2 Seconds
-#define MODE_SWITCH_PRESS_5S 5000 // 5 S
+#define SWITCH_PRESS_2S 2000 // 2 Seconds
+#define SWITCH_PRESS_5S 5000 // 5 S
 
 volatile unsigned int mode_switch_time = 0;
 volatile unsigned int mode_switch_duration = 0;
@@ -14,9 +14,9 @@ volatile unsigned int mode_switch_duration = 0;
 volatile unsigned int input_switch_time = 0;
 volatile unsigned int input_switch_duration = 0;
 
-volatile enum modes modes = main;
-volatile enum main_mode main_mode = show_time;
-volatile enum set_time_mode set_time_mode = set_hours;
+volatile enum modes mode = main;
+volatile enum main_modes main_mode = show_time;
+volatile enum set_time_modes set_time_mode = set_hours;
 
 void main_mode_next() {
     switch (main_mode) {
@@ -69,10 +69,8 @@ void set_time_mode_next() {
     }
 }
 
-void set_time_mode_loop() {
-start:
+void set_time_mode_handler() {
 
-    goto start;
 }
 
 /**
@@ -120,24 +118,24 @@ void mode_switch_release() {
         //
         // In the set_time mode, a short press cycles the set_time modes. A long press
         // returns to the main mode
-        if (mode_switch_duration > MODE_SWITCH_PRESS_5S)
+        if (mode_switch_duration > SWITCH_PRESS_5S)
         {
             // noop for now
             Serial.println("very long press: ?");
         }
-        else if (mode_switch_duration > MODE_SWITCH_PRESS_2S)
+        else if (mode_switch_duration > SWITCH_PRESS_2S)
         {
             Serial.print("long press: ");
-            if (modes == main)
+            if (mode == main)
             {
                 Serial.println("set time");
-                modes = set_time;
+                mode = set_time;
                 set_time_mode = set_hours;
             }
-            else if (modes == set_time)
+            else if (mode == set_time)
             {
                 Serial.println("main");
-                modes = main;
+                mode = main;
             }
             else
             {
@@ -147,13 +145,13 @@ void mode_switch_release() {
         else
         {
             Serial.print("short press: ");
-            if (modes == main)
+            if (mode == main)
             {
                 main_mode_next();
                 Serial.print("Main mode ");
                 Serial.println(main_mode);
             }
-            else if (modes == set_time)
+            else if (mode == set_time)
             {
                 set_time_mode_next();
                 Serial.print("set_time mode ");
@@ -200,22 +198,13 @@ void input_switch_release()
 
         Serial.print("Duration: ");
         Serial.println(input_switch_duration);
-#if 0
-        if (modes == main) {
-            main_mode_next();
+#if 1
+        if (mode == main) {
             Serial.print("Main mode: ");
             Serial.println(main_mode);
         }
-        else if (modes == set_time) {
-            if (input_switch_duration > LONG_MODE_SWITCH_PRESS) {
-                if (set_time_mode == set_hours) {
-                    set_time_mode = adv_hours_slow;
-                }
-            }
-            else {
-                set_time_mode_next();
-            }
-            Serial.print("set_time mode: ");
+        else if (mode == set_time) {
+            Serial.print("Main mode: ");
             Serial.println(set_time_mode);
         }
 #endif

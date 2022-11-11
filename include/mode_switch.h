@@ -7,20 +7,23 @@ void mode_switch_release();
 void input_switch_push();
 void input_switch_release();
 
-enum modes {
+void set_time_mode_handler();
+
+enum modes
+{
     main,
     set_time,
     set_config
 };
 
-enum main_mode
+enum main_modes
 {
     show_time,
     show_date,
     show_weather
 };
 
-enum set_time_mode
+enum set_time_modes
 {
     set_hours,
     adv_hours_slow, // no fast advance for hours
