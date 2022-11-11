@@ -5,7 +5,7 @@
 
 #include "mode_switch.h"
 
-#define SWITCH_INTERVAL 150 // ms
+#define SWITCH_INTERVAL 150  // ms
 #define SWITCH_PRESS_2S 2000 // 2 Seconds
 #define SWITCH_PRESS_5S 5000 // 5 S
 
@@ -18,6 +18,13 @@ volatile unsigned int input_switch_duration = 0;
 volatile enum modes mode = main;
 volatile enum main_modes main_mode = show_time;
 volatile enum set_time_modes set_time_mode = set_hours;
+
+extern volatile int digit_0;
+extern volatile int digit_1;
+extern volatile int digit_2;
+extern volatile int digit_3;
+extern volatile int digit_4;
+extern volatile int digit_5;
 
 void main_mode_next() {
     switch (main_mode) {
@@ -50,74 +57,28 @@ void main_mode_next() {
     */
 void set_time_mode_next() {
     switch (set_time_mode) {
-        case set_hours:
-        case adv_hours_slow:
+    case set_hours:
+    case adv_hours_slow:
         set_time_mode = set_minutes;
         break;
 
-        case set_minutes:
-        case adv_minutes_slow:
-        case adv_minutes_fast:
+    case set_minutes:
+    case adv_minutes_slow:
+    case adv_minutes_fast:
         set_time_mode = zero_seconds;
         break;
 
-        case zero_seconds:
+    case zero_seconds:
         set_time_mode = set_hours;
         break;
 
-        default:
+    default:
         break;
     }
 }
 
 // Set by the 1 Hz interrupt
 extern volatile byte tick;
-
-volatile unsigned int set_time_mode_handler_prev = 0;
-volatile unsigned int set_time_mode_handler_time = 0;
-volatile unsigned int set_time_mode_handler_duration = 0;
-
-// Called from the main loop frequently
-void set_time_mode_handler()
-{
-#if 0
-    set_time_mode_handler_prev = set_time_mode_handler_time;
-    set_time_mode_handler_time = millis();
-    set_time_mode_handler_duration = (set_time_mode_handler_prev != 0) ? set_time_mode_handler_time - set_time_mode_handler_prev : 0;
-
-    static int tick_count = 0;
-    cli(); // Protect 'tick' against update while in use
-    if (tick)
-    {
-        tick = LOW;
-        tick_count++;
-    }
-    sei();
-
-    switch (set_time_mode)
-    {
-    case set_hours:
-    case adv_hours_slow:
-
-        break;
-
-    case set_minutes:
-    case adv_minutes_slow:
-    case adv_minutes_fast:
-
-        break;
-
-    case zero_seconds:
-
-        break;
-
-    default:
-        break;
-    }
-
-    //update_display_using_mode();
-#endif
-}
 
 // This is clock's time, updated when set-time mode is exited
 extern DateTime dt;
@@ -132,20 +93,69 @@ extern RTC_DS1307 rtc;
 
 DateTime new_dt; // initialized to 'dt' when set_time mode is entered
 
-void set_time_mode_advance_by_one()
-{
+volatile unsigned int set_time_mode_handler_prev = 0;
+volatile unsigned int set_time_mode_handler_time = 0;
+volatile unsigned int set_time_mode_handler_duration = 0;
 
-    switch (set_time_mode)
-    {
+// Called from the main loop frequently
+void set_time_mode_handler() {
+    digit_0 = new_dt.second() % 10;
+    digit_1 = new_dt.second() / 10;
+
+    digit_2 = new_dt.minute() % 10;
+    digit_3 = new_dt.minute() / 10;
+
+    digit_4 = new_dt.hour() % 10;
+    digit_5 = new_dt.hour() / 10;
+
+#if 1
+    set_time_mode_handler_prev = set_time_mode_handler_time;
+    set_time_mode_handler_time = millis();
+    set_time_mode_handler_duration = (set_time_mode_handler_prev != 0)
+                                         ? set_time_mode_handler_time - set_time_mode_handler_prev
+                                         : 0;
+
+    static int tick_count = 0;
+    cli(); // Protect 'tick' against update while in use
+    if (tick) {
+        tick = LOW;
+        tick_count++;
+    }
+    sei();
+
+    switch (set_time_mode) {
     case set_hours:
     case adv_hours_slow:
-    {
-        if (new_dt.hour() == 23)
-        {
+
+        break;
+
+    case set_minutes:
+    case adv_minutes_slow:
+    case adv_minutes_fast:
+
+        break;
+
+    case zero_seconds:
+        rtc.adjust(new_dt);
+        dt = rtc.now();
+        break;
+
+    default:
+        break;
+    }
+#endif
+}
+
+// Called by an interrupt handler - no I2C
+// TODO Change that so that set_time_mode_handler() calls this and the zero_seconds
+//  state calls adjust().
+void set_time_mode_advance_by_one() {
+    switch (set_time_mode) {
+    case set_hours:
+    case adv_hours_slow: {
+        if (new_dt.hour() == 23) {
             new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
-        }
-        else
-        {
+        } else {
             uint8_t hour = new_dt.hour() + 1;
             new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), hour, new_dt.minute(), new_dt.second());
         }
@@ -154,14 +164,10 @@ void set_time_mode_advance_by_one()
 
     case set_minutes:
     case adv_minutes_slow:
-    case adv_minutes_fast:
-    {
-        if (new_dt.minute() == 59)
-        {
-            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
-        }
-        else
-        {
+    case adv_minutes_fast: {
+        if (new_dt.minute() == 59) {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), 0, new_dt.second());
+        } else {
             uint8_t minute = new_dt.minute() + 1;
             new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), minute, new_dt.second());
         }
@@ -217,57 +223,39 @@ void mode_switch_release() {
         mode_switch_duration = interrupt_time - mode_switch_time;
         mode_switch_time = interrupt_time;
 
-        // In the 'main' mode, a short press changes to set-time mode. A long press 
+        // In the 'main' mode, a short press changes to set-time mode. A long press
         // does nothing.
         //
         // In the set_time mode, a short press cycles the set_time modes. A long press
         // returns to the main mode
-        if (mode_switch_duration > SWITCH_PRESS_5S)
-        {
+        if (mode_switch_duration > SWITCH_PRESS_5S) {
             // noop for now
             Serial.println("very long press: ?");
-        }
-        else if (mode_switch_duration > SWITCH_PRESS_2S)
-        {
+        } else if (mode_switch_duration > SWITCH_PRESS_2S) {
             Serial.print("long press: ");
-            if (mode == main)
-            {
+            if (mode == main) {
                 Serial.println("set time");
                 mode = set_time;
                 set_time_mode = set_hours;
 
                 new_dt = dt; // initialize the new DateTime object to now
-            }
-            else if (mode == set_time)
-            {
+            } else if (mode == set_time) {
                 Serial.println("main");
                 mode = main;
-
-                rtc.adjust(new_dt); // Set the current time
-                dt = rtc.now();     // update global time.
-            }
-            else
-            {
+            } else {
                 Serial.println("?");
             }
-        }
-        else
-        {
+        } else {
             Serial.print("short press: ");
-            if (mode == main)
-            {
+            if (mode == main) {
                 main_mode_next();
                 Serial.print("Main mode ");
                 Serial.println(main_mode);
-            }
-            else if (mode == set_time)
-            {
+            } else if (mode == set_time) {
                 set_time_mode_next();
                 Serial.print("set_time mode ");
                 Serial.println(set_time_mode);
-            }
-            else
-            {
+            } else {
                 Serial.println("?");
             }
         }
@@ -276,13 +264,11 @@ void mode_switch_release() {
     last_interrupt_time = interrupt_time;
 }
 
-void input_switch_push()
-{
+void input_switch_push() {
     static unsigned long last_interrupt_time = 0;
     unsigned long interrupt_time = millis();
 
-    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL)
-    {
+    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
         Serial.print("input switch press, ");
         input_switch_time = interrupt_time;
         input_switch_duration = 0;
@@ -293,13 +279,11 @@ void input_switch_push()
     last_interrupt_time = interrupt_time;
 }
 
-void input_switch_release()
-{
+void input_switch_release() {
     static unsigned long last_interrupt_time = 0;
     unsigned long interrupt_time = millis();
 
-    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL)
-    {
+    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
         Serial.print("input switch release, ");
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
@@ -311,9 +295,8 @@ void input_switch_release()
         if (mode == main) {
             Serial.print("Main mode: ");
             Serial.println(main_mode);
-        }
-        else if (mode == set_time) {
-            Serial.print("Main mode: ");
+        } else if (mode == set_time) {
+            Serial.print("Set time mode: ");
             Serial.println(set_time_mode);
             set_time_mode_advance_by_one();
         }
