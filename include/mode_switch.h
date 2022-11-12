@@ -22,7 +22,10 @@ enum main_modes {
 };
 
 enum set_time_modes {
-    set_hours,
-    set_minutes,
+    set_year,
+    set_month,
+    set_day,
+    set_hour,
+    set_minute,
     zero_seconds
 };

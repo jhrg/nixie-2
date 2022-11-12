@@ -20,7 +20,7 @@ volatile bool input_switch_released = false;
 
 volatile enum modes mode = main;
 volatile enum main_modes main_mode = show_time;
-volatile enum set_time_modes set_time_mode = set_hours;
+volatile enum set_time_modes set_time_mode = set_hour;
 
 extern volatile int digit_0;
 extern volatile int digit_1;
@@ -61,16 +61,16 @@ void main_mode_next() {
 
 void set_time_mode_next() {
     switch (set_time_mode) {
-    case set_hours:
-        set_time_mode = set_minutes;
+    case set_hour:
+        set_time_mode = set_minute;
         break;
 
-    case set_minutes:
+    case set_minute:
         set_time_mode = zero_seconds;
         break;
 
     case zero_seconds:
-        set_time_mode = set_hours;
+        set_time_mode = set_hour;
         break;
 
     default:
@@ -80,7 +80,7 @@ void set_time_mode_next() {
 
 void set_time_mode_advance_by_one() {
     switch (set_time_mode) {
-    case set_hours: {
+    case set_hour: {
         if (new_dt.hour() == 23) {
             new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
         } else {
@@ -90,7 +90,7 @@ void set_time_mode_advance_by_one() {
         break;
     }
 
-    case set_minutes: {
+    case set_minute: {
         if (new_dt.minute() == 59) {
             new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), 0, new_dt.second());
         } else {
@@ -234,7 +234,7 @@ void mode_switch_release() {
             if (mode == main) {
                 Serial.println("set time");
                 mode = set_time;
-                set_time_mode = set_hours;
+                set_time_mode = set_hour;
 
                 new_dt = dt; // initialize the new DateTime object to now
             } else if (mode == set_time) {
