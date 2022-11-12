@@ -29,6 +29,17 @@ extern volatile int digit_3;
 extern volatile int digit_4;
 extern volatile int digit_5;
 
+extern DateTime dt; // This is clock's time, updated when set-time mode is exited
+DateTime new_dt;    // initialized to 'dt' when set_time mode is entered
+
+#if USE_DS3231
+extern RTC_DS3231 rtc;
+#elif USE_DS1307
+extern RTC_DS1307 rtc;
+#else
+#error "Must define one of DS3231 or DS1307"
+#endif
+
 void main_mode_next() {
     switch (main_mode) {
     case show_time:
@@ -67,24 +78,6 @@ void set_time_mode_next() {
     }
 }
 
-// This is clock's time, updated when set-time mode is exited
-extern DateTime dt;
-DateTime new_dt; // initialized to 'dt' when set_time mode is entered
-
-#if USE_DS3231
-extern RTC_DS3231 rtc;
-#elif USE_DS1307
-extern RTC_DS1307 rtc;
-#else
-#error "Must define one of DS3231 or DS1307"
-#endif
-
-volatile unsigned int set_time_mode_handler_prev = 0;
-volatile unsigned int set_time_mode_handler_time = 0;
-volatile unsigned int set_time_mode_handler_duration = 0;
-// Called by an interrupt handler - no I2C
-// TODO Change that so that set_time_mode_handler() calls this and the zero_seconds
-//  state calls adjust().
 void set_time_mode_advance_by_one() {
     switch (set_time_mode) {
     case set_hours: {
@@ -109,6 +102,8 @@ void set_time_mode_advance_by_one() {
 
     case zero_seconds:
         new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), 0);
+        rtc.adjust(new_dt); // Set the clock to the new time
+        dt = rtc.now();     // Update the global variable that holds the time
         break;
 
     default:
@@ -181,10 +176,6 @@ void set_time_mode_handler() {
     if (input_switch_released) {
         input_switch_released = false; // input_switch_released is only reset in this function
         last_input_call_time = 0;
-        if (set_time_mode == zero_seconds) {
-            rtc.adjust(new_dt); // Set the clock to the new time
-            dt = rtc.now();     // Update the global variable that holds the time
-        }
     }
 }
 
