@@ -424,11 +424,11 @@ void setup() {
 
     // MODE_SWITCH is D3, external 1k pullup
     pinMode(MODE_SWITCH, INPUT);
-    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, FALLING);
+    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, RISING);
 
     // INPUT_SWITCH is D4, external 1k pullup
     pinMode(INPUT_SWITCH, INPUT);
-    attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
+    attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
     // Set up timer 2 - controls the display multiplexing
 

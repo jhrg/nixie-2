@@ -200,7 +200,7 @@ void mode_switch_push() {
         // Triggered on the rising edge is the button press; start the timer
         mode_switch_duration = 0;
         mode_switch_time = interrupt_time;
-        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_release, RISING);
+        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_release, FALLING);
     }
 
     last_interrupt_time = interrupt_time;
@@ -215,7 +215,7 @@ void mode_switch_release() {
 
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
         Serial.println("mode switch release");
-        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, FALLING);
+        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, RISING);
         mode_switch_duration = interrupt_time - mode_switch_time;
         mode_switch_time = interrupt_time;
 
@@ -284,7 +284,7 @@ void input_switch_push() {
         input_switch_press = true;
         input_switch_released = false;
 
-        attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, RISING);
+        attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, FALLING);
     }
 
     last_interrupt_time = interrupt_time;
@@ -297,7 +297,7 @@ void input_switch_release() {
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
         Serial.print("input switch release, ");
 
-        attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
+        attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
         input_switch_duration = interrupt_time - input_switch_time;
 
         Serial.print("Duration: ");
