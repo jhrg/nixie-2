@@ -163,6 +163,7 @@ void update_display_using_mode() {
     // This quiets the 'weather' display, but needs to be reset when that mode
     // is exited.
     static int weather_state = 1;
+    
     switch (main_mode) {
     case show_time:
         weather_state = 1;
@@ -510,56 +511,4 @@ void loop() {
     else {
         // noo
     }
-
-#if 0
-    static int tick_count = 0;
-    bool get_time = false;
-    bool update_display = false;
-    // Protect 'tick' against update while in use
-    cli();
-    if (tick) {
-        tick = LOW;
-        tick_count++;
-
-        if (tick_count >= CLOCK_QUERY_INTERVAL) {
-            // update time using I2C access to the clock
-            tick_count = 0;
-            get_time = true;
-        } else {
-            TimeSpan ts(1); // a one-second time span
-            dt = dt + ts;   // Advance 'dt' by one second
-
-            // move out of cli/sei block update_display_using_mode(); // true == adv time by 1s
-        }
-
-#if 0
-        // hack - 
-        if (tick_count & B00000001) {
-            d2_rhdp = 1;
-            d4_rhdp = 1;
-        } else {
-            d2_rhdp = 0;
-            d4_rhdp = 0;
-        }
-#endif
-
-        update_display = true;
-    }
-    sei();
-
-    if (get_time) {
-        get_time = false;
-        uint32_t start_get_time = micros();
-        dt = rtc.now();
-        uint32_t get_time_duration = micros() - start_get_time;
-
-        update_display_using_mode();
-
-        if (Serial)
-            display_monitor_info(dt, get_time_duration);
-    }
-
-    if (update_display)
-        update_display_using_mode(); // true == adv time by 1s
-#endif
 }

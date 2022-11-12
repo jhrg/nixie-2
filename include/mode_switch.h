@@ -23,11 +23,6 @@ enum main_modes {
 
 enum set_time_modes {
     set_hours,
-    adv_hours_slow, // no fast advance for hours
-
     set_minutes,
-    adv_minutes_slow,
-    adv_minutes_fast,
-
     zero_seconds
 };
