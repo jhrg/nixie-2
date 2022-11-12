@@ -12,10 +12,10 @@
 #include "DHT_sensor.h"
 #include "mode_switch.h"
 
-extern volatile enum modes modes;
-extern volatile enum main_mode main_mode;
+extern volatile enum modes mode;
+extern volatile enum main_modes main_mode;
 
-#define BAUD_RATE 9600
+#define BAUD_RATE 115200 // old: 9600
 #define CLOCK_QUERY_INTERVAL 100 // seconds
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
@@ -160,21 +160,27 @@ void update_display_with_date() {
 }
 
 void update_display_using_mode() {
+    // This quiets the 'weather' display, but needs to be reset when that mode
+    // is exited.
+    static int weather_state = 1;
+    
     switch (main_mode) {
     case show_time:
+        weather_state = 1;
         update_display_with_time();
         break;
 
     case show_date:
+        weather_state = 1;
         update_display_with_date();
 #if DEBUG
         print_digits(true);
 #endif
         break;
 
-    case show_weather: {
+    case show_weather:
+    {
         // 4 seconds; state 1,2,...n/2 == temp & humidity, n/2,..., N baro pressure,
-        static int weather_state = 1;
         update_display_with_weather(weather_state);
         weather_state = (weather_state == WEATHER_DISPLAY_DURATION << 1) ? 1 : weather_state + 1;
 
@@ -350,7 +356,7 @@ void setup() {
     Serial.println(__TIME__);
 
     DateTime build_time = DateTime(F(__DATE__), F(__TIME__));
-    TimeSpan ts(16);
+    TimeSpan ts(ADJUST_TIME);
     build_time = build_time + ts;
     DateTime now = rtc.now();
 
@@ -418,11 +424,11 @@ void setup() {
 
     // MODE_SWITCH is D3, external 1k pullup
     pinMode(MODE_SWITCH, INPUT);
-    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, FALLING);
+    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, RISING);
 
     // INPUT_SWITCH is D4, external 1k pullup
     pinMode(INPUT_SWITCH, INPUT);
-    attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, FALLING);
+    attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
     // Set up timer 2 - controls the display multiplexing
 
@@ -444,27 +450,32 @@ void setup() {
     sei(); // start interrupts
 }
 
-void loop() {
+void main_mode_handler()
+{
     static int tick_count = 0;
     bool get_time = false;
     bool update_display = false;
-    // Protect 'tick' against update while in use
-    cli();
-    if (tick) {
+
+    cli(); // Protect 'tick' against update while in use
+    if (tick)
+    {
         tick = LOW;
         tick_count++;
 
-        if (tick_count >= CLOCK_QUERY_INTERVAL) {
+        if (tick_count >= CLOCK_QUERY_INTERVAL)
+        {
             // update time using I2C access to the clock
             tick_count = 0;
             get_time = true;
-        } else {
+        }
+        else
+        {
             TimeSpan ts(1); // a one-second time span
             dt = dt + ts;   // Advance 'dt' by one second
-
-            // move out of cli/sei block update_display_using_mode(); // true == adv time by 1s
         }
 
+#if 0
+        // hack - 
         if (tick_count & B00000001) {
             d2_rhdp = 1;
             d4_rhdp = 1;
@@ -472,23 +483,32 @@ void loop() {
             d2_rhdp = 0;
             d4_rhdp = 0;
         }
+#endif
 
         update_display = true;
     }
-    sei();
+    sei();  // interrupts back on
 
-    if (get_time) {
+    if (get_time)
+    {
         get_time = false;
-        uint32_t start_get_time = micros();
-        dt = rtc.now();
-        uint32_t get_time_duration = micros() - start_get_time;
+        dt = rtc.now(); // This call takes about 1ms
 
         update_display_using_mode();
-
-        if (Serial)
-            display_monitor_info(dt, get_time_duration);
     }
 
     if (update_display)
         update_display_using_mode(); // true == adv time by 1s
+}
+
+void loop() {
+    if (mode == main) {
+        main_mode_handler();
+    }
+    else if (mode == set_time) {
+        set_time_mode_handler();
+    }
+    else {
+        // noo
+    }
 }

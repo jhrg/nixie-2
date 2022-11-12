@@ -96,9 +96,18 @@ void test_MPL3115A2() {
 void update_display_with_weather(int state) {
     sensors_event_t event;
 
+    Serial.print("Weather state: ");
+    Serial.println(state);
+
     switch (state) {
     case 1: {
-        dht.temperature().getEvent(&event);
+        int trials = -1;
+        do
+        {
+            dht.temperature().getEvent(&event);
+            trials++;
+        } while (isnan(event.temperature) && trials < 10);
+
         int temp = 0;
         if (!isnan(event.temperature)) {
             temp = round(event.temperature * 9.0 / 5.0 + 32.0);
