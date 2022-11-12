@@ -10,11 +10,11 @@
 #define SWITCH_PRESS_5S 5000   // 5 S
 #define SWITCH_PRESS_10S 10000 // 10 S
 
-volatile unsigned int mode_switch_time = 0;
-volatile unsigned int mode_switch_duration = 0;
+volatile unsigned long mode_switch_time = 0;
+volatile unsigned long mode_switch_duration = 0;
 
-volatile unsigned int input_switch_time = 0;
-volatile unsigned int input_switch_duration = 0;
+volatile unsigned long input_switch_time = 0;
+volatile unsigned long input_switch_duration = 0;
 volatile bool input_switch_press = false; // set to true by the IRQ
 volatile bool input_switch_released = false;
 
@@ -131,12 +131,14 @@ void set_time_mode_handler() {
     digit_4 = new_dt.hour() % 10;
     digit_5 = new_dt.hour() / 10;
 
+#if 0
     if (input_switch_press || input_switch_released) {
         char msg[128];
         snprintf(msg, sizeof(msg), "isp: %d, isr: %d, is duration: %d, is time: %d",
                  input_switch_press, input_switch_released, input_switch_duration, input_switch_time);
         Serial.println(msg);
     }
+#endif
 
     // This provides a way to track how long the switch is being held down and thus how
     // frequently to call set_time_mode_advance_by_one().
@@ -147,7 +149,6 @@ void set_time_mode_handler() {
     if (input_switch_released && input_switch_duration < SWITCH_PRESS_2S) {
         set_time_mode_advance_by_one();
     } else if (input_switch_press && !input_switch_released) {
-        Serial.print("In the button held code... ");
         // This duration is the time the switch has been held down before being released.
         // Different from the time the switch _was_ held down before being released, which
         // is measured by the global input_switch_duration
@@ -155,18 +156,21 @@ void set_time_mode_handler() {
         if (duration > SWITCH_PRESS_10S) {
             // call set_time_mode_advance_by_one() really often (1/10th a second)
             if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
+                Serial.println("Really fast");
                 set_time_mode_advance_by_one();
                 last_input_call_time = millis();
             }
         } else if (duration > SWITCH_PRESS_5S) {
             // call set_time_mode_advance_by_one() often (half second)
             if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_FAST)) {
+                Serial.println("fast");
                 set_time_mode_advance_by_one();
                 last_input_call_time = millis();
             }
-        } else {
+        } else if (duration > SWITCH_PRESS_2S) {
             // call set_time_mode_advance_by_one() once per second
             if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE)) {
+                Serial.println("regular");
                 set_time_mode_advance_by_one();
                 last_input_call_time = millis();
             }
