@@ -7,11 +7,11 @@ void mode_switch_release();
 void input_switch_push();
 void input_switch_release();
 
-void set_time_mode_handler();
+void set_date_time_mode_handler();
 
 enum modes {
     main,
-    set_time,
+    set_date_time,
     set_config
 };
 

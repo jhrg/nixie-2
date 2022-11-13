@@ -71,72 +71,134 @@ void main_mode_next() {
     }
 }
 
-void set_time_mode_next() {
+/**
+ * @brief Advance the set_time_mode state machine
+ * @note the order is month -> day -> year -> hour -> min -> zero seconds
+ */
+void set_date_time_mode_next() {
     switch (set_time_mode) {
-    case set_hour:
-        set_time_mode = set_minute;
-        break;
+        case set_month:
+            set_time_mode = set_day;
+            break;
 
-    case set_minute:
-        set_time_mode = zero_seconds;
-        break;
+        case set_day:
+            set_time_mode = set_year;
+            break;
 
-    case zero_seconds:
-        set_time_mode = set_hour;
-        break;
+        case set_year:
+            set_time_mode = set_hour;
+            break;
 
-    default:
-        break;
+        case set_hour:
+            set_time_mode = set_minute;
+            break;
+
+        case set_minute:
+            set_time_mode = zero_seconds;
+            break;
+
+        case zero_seconds:
+            set_time_mode = set_hour;
+            break;
+
+        default:
+            break;
     }
 }
 
-void set_time_mode_advance_by_one() {
+void set_date_time_mode_advance_by_one() {
     switch (set_time_mode) {
-    case set_hour: {
-        if (new_dt.hour() == 23) {
-            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
-        } else {
-            uint8_t hour = new_dt.hour() + 1;
-            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), hour, new_dt.minute(), new_dt.second());
+        case set_month: {
+            if (new_dt.month() == 12) {
+                new_dt = DateTime(new_dt.year(), 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
+            } else {
+                new_dt = DateTime(new_dt.year(), new_dt.month() + 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
+            }
+            break;
         }
-        break;
-    }
 
-    case set_minute: {
-        if (new_dt.minute() == 59) {
-            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), 0, new_dt.second());
-        } else {
-            uint8_t minute = new_dt.minute() + 1;
-            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), minute, new_dt.second());
+        case set_day: {
+            if (new_dt.day() == 31) {
+                new_dt = DateTime(new_dt.year(), new_dt.month(), 1, new_dt.hour(), new_dt.minute(), new_dt.second());
+            } else {
+                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day() + 1, new_dt.hour(), new_dt.minute(), new_dt.second());
+            }
+            break;
         }
-        break;
-    }
 
-    case zero_seconds:
-        new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), 0);
-        rtc.adjust(new_dt); // Set the clock to the new time
-        dt = rtc.now();     // Update the global variable that holds the time
-        break;
+        case set_year: {
+            if (new_dt.year() == 99) {
+                new_dt = DateTime(0, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
+            } else {
+                new_dt = DateTime(new_dt.year() + 1, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
+            }
+            break;
+        }
 
-    default:
-        break;
+        case set_hour: {
+            if (new_dt.hour() == 23) {
+                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
+            } else {
+                uint8_t hour = new_dt.hour() + 1;
+                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), hour, new_dt.minute(), new_dt.second());
+            }
+            break;
+        }
+
+        case set_minute: {
+            if (new_dt.minute() == 59) {
+                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), 0, new_dt.second());
+            } else {
+                uint8_t minute = new_dt.minute() + 1;
+                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), minute, new_dt.second());
+            }
+            break;
+        }
+
+        case zero_seconds:
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), 0);
+            rtc.adjust(new_dt);  // Set the clock to the new time
+            dt = rtc.now();      // Update the global variable that holds the time
+            break;
+
+        default:
+            break;
     }
 }
 
-#define ADVANCE_REALLY_FAST 100 // 10ms
+#define ADVANCE_REALLY_FAST 100 // 100ms
 #define ADVANCE_FAST 500
 #define ADVANCE 1000
 
 // Called from the main loop frequently
-void set_time_mode_handler() {
-    digit_0 = new_dt.second() % 10;
-    digit_1 = new_dt.second() / 10;
+void set_date_time_mode_handler() {
+    switch (set_time_mode) {
+        case set_year:
+        case set_month:
+        case set_day:
+            digit_0 = new_dt.year() % 10;
+            digit_1 = (new_dt.year() - 2000) / 10;
 
-    digit_2 = new_dt.minute() % 10;
-    digit_3 = new_dt.minute() / 10;
+            digit_2 = new_dt.day() % 10;
+            digit_3 = new_dt.day() / 10;
 
-    digit_4 = new_dt.hour() % 10;
-    digit_5 = new_dt.hour() / 10;
+            digit_4 = new_dt.month() % 10;
+            digit_5 = new_dt.month() / 10;
+            break;
+
+        case set_hour:
+        case set_minute:
+        case zero_seconds:
+            digit_0 = new_dt.second() % 10;
+            digit_1 = new_dt.second() / 10;
+
+            digit_2 = new_dt.minute() % 10;
+            digit_3 = new_dt.minute() / 10;
+
+            digit_4 = new_dt.hour() % 10;
+            digit_5 = new_dt.hour() / 10;
+            break;
+    }
 
     // This provides a way to track how long the switch is being held down and thus how
     // frequently to call set_time_mode_advance_by_one().
@@ -145,35 +207,35 @@ void set_time_mode_handler() {
     // if the switch was not held down for 2s or longer. This keeps the count
     // from being incremented and extra time when a long press is released
     if (input_switch_released && input_switch_duration < SWITCH_PRESS_2S) {
-        set_time_mode_advance_by_one();
-    } else if (input_switch_press && !input_switch_released) {
-        // This duration is the time the switch has been held down before being released.
-        // Different from the time the switch _was_ held down before being released, which
-        // is measured by the global input_switch_duration
-        unsigned long duration = millis() - input_switch_time;
-        if (duration > SWITCH_PRESS_10S) {
-            // call set_time_mode_advance_by_one() really often (1/10th a second)
-            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
-                Serial.println("Really fast");
-                set_time_mode_advance_by_one();
-                last_input_call_time = millis();
-            }
-        } else if (duration > SWITCH_PRESS_5S) {
-            // call set_time_mode_advance_by_one() often (half second)
-            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_FAST)) {
-                Serial.println("fast");
-                set_time_mode_advance_by_one();
-                last_input_call_time = millis();
-            }
-        } else if (duration > SWITCH_PRESS_2S) {
-            // call set_time_mode_advance_by_one() once per second
-            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE)) {
-                Serial.println("regular");
-                set_time_mode_advance_by_one();
-                last_input_call_time = millis();
+        set_date_time_mode_advance_by_one();
+        } else if (input_switch_press && !input_switch_released) {
+            // This duration is the time the switch has been held down before being released.
+            // Different from the time the switch _was_ held down before being released, which
+            // is measured by the global input_switch_duration
+            unsigned long duration = millis() - input_switch_time;
+            if (duration > SWITCH_PRESS_10S) {
+                // call set_time_mode_advance_by_one() really often (1/10th a second)
+                if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
+                    Serial.println("Really fast");
+                    set_date_time_mode_advance_by_one();
+                    last_input_call_time = millis();
+                }
+            } else if (duration > SWITCH_PRESS_5S) {
+                // call set_time_mode_advance_by_one() often (half second)
+                if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_FAST)) {
+                    Serial.println("fast");
+                    set_date_time_mode_advance_by_one();
+                    last_input_call_time = millis();
+                }
+            } else if (duration > SWITCH_PRESS_2S) {
+                // call set_time_mode_advance_by_one() once per second
+                if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE)) {
+                    Serial.println("regular");
+                    set_date_time_mode_advance_by_one();
+                    last_input_call_time = millis();
+                }
             }
         }
-    }
 
     // If the input switch was released, reset the state and the also last_input_call_time
     if (input_switch_released) {
@@ -236,11 +298,11 @@ void mode_switch_release() {
             Serial.print("long press: ");
             if (mode == main) {
                 Serial.println("set time");
-                mode = set_time;
+                mode = set_date_time;
                 set_time_mode = set_hour;
 
                 new_dt = dt; // initialize the new DateTime object to now
-            } else if (mode == set_time) {
+            } else if (mode == set_date_time) {
                 Serial.println("main");
                 mode = main;
             } else {
@@ -254,8 +316,8 @@ void mode_switch_release() {
                 main_mode_next();
                 Serial.print("Main mode ");
                 Serial.println(main_mode);
-            } else if (mode == set_time) {
-                set_time_mode_next();
+            } else if (mode == set_date_time) {
+                set_date_time_mode_next();
                 Serial.print("set_time mode ");
                 Serial.println(set_time_mode);
             } else {

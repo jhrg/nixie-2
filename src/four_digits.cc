@@ -504,11 +504,9 @@ void main_mode_handler()
 void loop() {
     if (mode == main) {
         main_mode_handler();
-    }
-    else if (mode == set_time) {
-        set_time_mode_handler();
-    }
-    else {
+    } else if (mode == set_date_time) {
+        set_date_time_mode_handler();
+    } else {
         // noo
     }
 }
