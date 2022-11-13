@@ -101,7 +101,7 @@ void print(const char *fmt, ...) {
  * Print the values of the current digits
  */
 void print_digits(bool newline) {
-    print("%02d-%02d-%02d-%02d-%02d-%02d", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
+    print("%02d-%02d-%02d-%02d-%02d-%02d\n", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
 #if 0
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d-%02d-%02d-%02d", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
@@ -115,7 +115,7 @@ void print_digits(bool newline) {
  * Print the current time, formatted
  */
 void print_time(DateTime dt, bool print_newline = false) {
-    print("%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
+    print("%02d/%02d/%02d %02d:%02d:%02d\n", dt.year(), dt.month(),
           dt.day(), dt.hour(), dt.minute(), dt.second());
 #if 0
     // or Serial.println(now.toString(buffer));, buffer == YY/MM/DD hh:mm:ss
