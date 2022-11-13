@@ -6,6 +6,7 @@
 DHT_Unified dht(DHTPIN, DHTTYPE);
 Adafruit_MPL3115A2 baro;
 
+extern void print(const char *fmt, ...);
 extern void print_digits(bool newline);
 
 // The current display digits
@@ -100,11 +101,12 @@ void update_display_with_weather(int state) {
     Serial.println(state);
 
     switch (state) {
-    case 1: {
+    case 0: {
         int trials = -1;
         do
         {
             dht.temperature().getEvent(&event);
+            delay(10);
             trials++;
         } while (isnan(event.temperature) && trials < 10);
 
@@ -125,6 +127,7 @@ void update_display_with_weather(int state) {
         digit_4 = rh % 10;
         digit_5 = rh / 10;
 #if DEBUG
+        print("Trials: %d\n", trials);
         print_digits(true);
 #endif
         break;

@@ -15,7 +15,7 @@
 extern volatile enum modes mode;
 extern volatile enum main_modes main_mode;
 
-#define BAUD_RATE 115200 // old: 9600
+#define BAUD_RATE 115200         // old: 9600
 #define CLOCK_QUERY_INTERVAL 100 // seconds
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
@@ -91,7 +91,7 @@ void print(const char *fmt, ...) {
     char msg[128];
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(msg, sizeof(msg), fmt, ap);  // copies args
+    vsnprintf(msg, sizeof(msg), fmt, ap); // copies args
     va_end(ap);
 
     Serial.print(msg);
@@ -181,27 +181,26 @@ void update_display_with_date() {
 void update_display_using_mode() {
     // This quiets the 'weather' display, but needs to be reset when that mode
     // is exited.
-    static int weather_state = 1;
-    
+    static int weather_state = 0;
+
     switch (main_mode) {
     case show_time:
-        weather_state = 1;
+        weather_state = 0;
         update_display_with_time();
         break;
 
     case show_date:
-        weather_state = 1;
+        weather_state = 0;
         update_display_with_date();
 #if DEBUG
         print_digits(true);
 #endif
         break;
 
-    case show_weather:
-    {
+    case show_weather: {
         // 4 seconds; state 1,2,...n/2 == temp & humidity, n/2,..., N baro pressure,
         update_display_with_weather(weather_state);
-        weather_state = (weather_state == WEATHER_DISPLAY_DURATION << 1) ? 1 : weather_state + 1;
+        weather_state = (weather_state < WEATHER_DISPLAY_DURATION << 1) ? weather_state + 1 : 0;
 
         // could return to time here when weather_state == 1 again (after one cycle)
         break;
@@ -212,14 +211,13 @@ void update_display_using_mode() {
     }
 }
 
-void blank_dp() 
-{
-      d0_rhdp = 0;
-      d1_rhdp = 0;
-      d2_rhdp = 0;
-      d3_rhdp = 0;
-      d4_rhdp = 0;
-      d5_rhdp = 0;
+void blank_dp() {
+    d0_rhdp = 0;
+    d1_rhdp = 0;
+    d2_rhdp = 0;
+    d3_rhdp = 0;
+    d4_rhdp = 0;
+    d5_rhdp = 0;
 }
 
 // Set HIGH when the 1 second interrupt been triggered by the clock
@@ -283,7 +281,7 @@ ISR(TIMER2_COMPA_vect) {
                 if (d2_rhdp)
                     PORTD |= RHDP;
             }
-            
+
             digit += 1;
             break;
 
@@ -469,26 +467,21 @@ void setup() {
     sei(); // start interrupts
 }
 
-void main_mode_handler()
-{
+void main_mode_handler() {
     static int tick_count = 0;
     bool get_time = false;
     bool update_display = false;
 
     cli(); // Protect 'tick' against update while in use
-    if (tick)
-    {
+    if (tick) {
         tick = LOW;
         tick_count++;
 
-        if (tick_count >= CLOCK_QUERY_INTERVAL)
-        {
+        if (tick_count >= CLOCK_QUERY_INTERVAL) {
             // update time using I2C access to the clock
             tick_count = 0;
             get_time = true;
-        }
-        else
-        {
+        } else {
             TimeSpan ts(1); // a one-second time span
             dt = dt + ts;   // Advance 'dt' by one second
         }
@@ -506,10 +499,9 @@ void main_mode_handler()
 
         update_display = true;
     }
-    sei();  // interrupts back on
+    sei(); // interrupts back on
 
-    if (get_time)
-    {
+    if (get_time) {
         get_time = false;
         dt = rtc.now(); // This call takes about 1ms
 

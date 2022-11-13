@@ -5,6 +5,8 @@
 
 #include "mode_switch.h"
 
+extern void print_digits(bool newline);
+
 #define SWITCH_INTERVAL 150    // ms
 #define SWITCH_PRESS_2S 2000   // 2 Seconds
 #define SWITCH_PRESS_5S 5000   // 5 S
@@ -20,7 +22,7 @@ volatile bool input_switch_released = false;
 
 volatile enum modes mode = main;
 volatile enum main_modes main_mode = show_time;
-volatile enum set_time_modes set_time_mode = set_hour;
+volatile enum set_time_modes set_time_mode = set_month;
 
 extern volatile int digit_0;
 extern volatile int digit_1;
@@ -86,7 +88,7 @@ void set_date_time_mode_next() {
             break;
 
         case zero_seconds:
-            set_time_mode = set_hour;
+            set_time_mode = set_day;
             break;
 
         default:
@@ -287,7 +289,7 @@ void mode_switch_release() {
             if (mode == main) {
                 Serial.println("set time");
                 mode = set_date_time;
-                set_time_mode = set_hour;
+                set_time_mode = set_month;
 
                 new_dt = dt; // initialize the new DateTime object to now
             } else if (mode == set_date_time) {
