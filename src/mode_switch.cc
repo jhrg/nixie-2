@@ -40,18 +40,6 @@ extern RTC_DS1307 rtc;
 #error "Must define one of DS3231 or DS1307"
 #endif
 
-// TODO move this if it's useful
-void print(const char *fmt, ...)
-{
-    char zDesc[5000];
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(zDesc, sizeof(zDesc), fmt, ap); // copies args
-    va_end(ap);
-
-    Serial.print(zDesc);
-}
-
 void main_mode_next() {
     switch (main_mode) {
     case show_time:
@@ -127,8 +115,8 @@ void set_date_time_mode_advance_by_one() {
         }
 
         case set_year: {
-            if (new_dt.year() == 99) {
-                new_dt = DateTime(0, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
+            if (new_dt.year() == 2099) {
+                new_dt = DateTime(2000, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
             } else {
                 new_dt = DateTime(new_dt.year() + 1, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
             }

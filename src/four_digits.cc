@@ -86,27 +86,46 @@ volatile int d3_rhdp;
 volatile int d4_rhdp;
 volatile int d5_rhdp;
 
+// TODO move this if it's useful
+void print(const char *fmt, ...) {
+    char msg[128];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(msg, sizeof(msg), fmt, ap);  // copies args
+    va_end(ap);
+
+    Serial.print(msg);
+}
+
 /**
  * Print the values of the current digits
  */
 void print_digits(bool newline) {
+    print("%02d-%02d-%02d-%02d-%02d-%02d", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
+#if 0
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d-%02d-%02d-%02d", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
     Serial.print(str);
     if (newline)
         Serial.println();
+#endif
 }
 
 /**
  * Print the current time, formatted
  */
 void print_time(DateTime dt, bool print_newline = false) {
+    print("%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
+          dt.day(), dt.hour(), dt.minute(), dt.second());
+#if 0
+    // or Serial.println(now.toString(buffer));, buffer == YY/MM/DD hh:mm:ss
     char str[64];
     snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
              dt.day(), dt.hour(), dt.minute(), dt.second());
     Serial.print(str);
     if (print_newline)
         Serial.println();
+#endif
 }
 
 /**
