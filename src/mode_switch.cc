@@ -40,6 +40,18 @@ extern RTC_DS1307 rtc;
 #error "Must define one of DS3231 or DS1307"
 #endif
 
+// TODO move this if it's useful
+void print(const char *fmt, ...)
+{
+    char zDesc[5000];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(zDesc, sizeof(zDesc), fmt, ap); // copies args
+    va_end(ap);
+
+    Serial.print(zDesc);
+}
+
 void main_mode_next() {
     switch (main_mode) {
     case show_time:
@@ -125,15 +137,6 @@ void set_time_mode_handler() {
 
     digit_4 = new_dt.hour() % 10;
     digit_5 = new_dt.hour() / 10;
-
-#if 0
-    if (input_switch_press || input_switch_released) {
-        char msg[128];
-        snprintf(msg, sizeof(msg), "isp: %d, isr: %d, is duration: %d, is time: %d",
-                 input_switch_press, input_switch_released, input_switch_duration, input_switch_time);
-        Serial.println(msg);
-    }
-#endif
 
     // This provides a way to track how long the switch is being held down and thus how
     // frequently to call set_time_mode_advance_by_one().
