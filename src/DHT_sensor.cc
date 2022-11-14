@@ -136,7 +136,7 @@ void update_display_with_weather() {
     Serial.print("Weather state: ");
     Serial.println(state);
 
-    switch (state++) {
+    switch (state) {
         case 0: {
             blank_dp();
 
@@ -144,12 +144,16 @@ void update_display_with_weather() {
             dht.temperature().getEvent(&event);
             if (!isnan(event.temperature)) {
                 temperature = event.temperature;
+            } else {
+                print("Failure to read temperature - DHT\n");
             }
             int temp = round(temperature * 9.0 / 5.0 + 32.0);
 
             dht.humidity().getEvent(&event);
             if (!isnan(event.relative_humidity)) {
                 relative_humidity = event.relative_humidity;
+            } else {
+                print("Failure to read humidity - DHT\n");
             }
             int rh = round(relative_humidity);
 
@@ -165,7 +169,7 @@ void update_display_with_weather() {
             break;
         }
 
-        case WEATHER_DISPLAY_DURATION: {
+        case 4: {
             blank_dp();
             float pressure = (baro.getPressure() + hPa_station_correction) * inch_Hg_per_hPa;
 
@@ -193,4 +197,6 @@ void update_display_with_weather() {
         default:
             break;
     }
+
+    state += 1;
 }
