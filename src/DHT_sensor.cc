@@ -24,13 +24,6 @@ extern volatile int d3_rhdp;
 extern volatile int d4_rhdp;
 extern volatile int d5_rhdp;
 
-extern volatile int d0_lhdp;
-extern volatile int d1_lhdp;
-extern volatile int d2_lhdp;
-extern volatile int d3_lhdp;
-extern volatile int d4_lhdp;
-extern volatile int d5_lhdp;
-
 extern void blank_dp();     // defined in four_digits.cc
 
 void test_dht_22() {
@@ -91,77 +84,113 @@ void test_MPL3115A2() {
     Serial.println(" C");
 }
 
-// The weather display is a simple state machine:
-// 1,2: show temperature, humidity
-// 3,4: show pressure
-void update_display_with_weather(int state) {
+// These hold the most recent measurement. Sometimes the DHT
+// does not return a value, so these provide continuity. They
+// are loaded with values during boot time.
+static float temperature = 0.0;
+static float relative_humidity = 0.0;
+
+// for altitude correction: 1 hPa decrease per 30 feet above MS
+static float station_msl = 5560.0;  // feet; could be a config param
+static float hPa_station_correction = 0.0;
+
+void initialize_DHT_values() {
     sensors_event_t event;
+    int trial = 0;
+
+    dht.temperature().getEvent(&event);
+    while (isnan(event.temperature) && trial < 10) {
+        delay(2000);  // 2s
+        trial++;
+        dht.temperature().getEvent(&event);
+    }
+    if (!isnan(event.temperature)) {
+        temperature = event.temperature;
+    } else {
+        print("DHT Temperature failure on boot\n");
+    }
+
+    trial = 0;
+    dht.humidity().getEvent(&event);
+    while (isnan(event.relative_humidity) && trial < 10) {
+        delay(2000);  // 2s
+        trial++;
+        dht.temperature().getEvent(&event);
+    }
+    if (!isnan(event.relative_humidity)) {
+        relative_humidity = event.relative_humidity;
+    } else {
+        print("DHT relative humidity failure on boot\n");
+    }
+
+    hPa_station_correction = station_msl / 30.0;
+}
+
+// The weather display is a simple state machine:
+// 0,..., N/2 - 1: show temperature, humidity
+// N/2, ..., N-1: show pressure
+void update_display_with_weather() {
+    static int state = 0;
+    if (state > WEATHER_DISPLAY_DURATION - 1) state = 0;
 
     Serial.print("Weather state: ");
     Serial.println(state);
 
-    switch (state) {
-    case 0: {
-        int trials = -1;
-        do
-        {
+    switch (state++) {
+        case 0: {
+            blank_dp();
+
+            sensors_event_t event;
             dht.temperature().getEvent(&event);
-            delay(10);
-            trials++;
-        } while (isnan(event.temperature) && trials < 10);
+            if (!isnan(event.temperature)) {
+                temperature = event.temperature;
+            }
+            int temp = round(temperature * 9.0 / 5.0 + 32.0);
 
-        int temp = 0;
-        if (!isnan(event.temperature)) {
-            temp = round(event.temperature * 9.0 / 5.0 + 32.0);
+            dht.humidity().getEvent(&event);
+            if (!isnan(event.relative_humidity)) {
+                relative_humidity = event.relative_humidity;
+            }
+            int rh = round(relative_humidity);
+
+            digit_0 = temp % 10;
+            digit_1 = temp / 10;
+            digit_2 = -1;
+            digit_3 = -1;
+            digit_4 = rh % 10;
+            digit_5 = rh / 10;
+#if DEBUG
+            print_digits(true);
+#endif
+            break;
         }
-        int rh = 0;
-        // dht.humidity().getEvent(&event);
-        if (!isnan(event.relative_humidity)) {
-            rh = round(event.relative_humidity);
+
+        case WEATHER_DISPLAY_DURATION: {
+            blank_dp();
+            float pressure = (baro.getPressure() + hPa_station_correction) * inch_Hg_per_hPa;
+
+            int LHS = (int)pressure;
+            int RHS = (int)((pressure - LHS) * 100.0);
+#if DEBUG
+            Serial.print("LHS: ");
+            Serial.println(LHS);
+            Serial.print("RHS: ");
+            Serial.println(RHS);
+#endif
+            digit_0 = RHS % 10;
+            digit_1 = RHS / 10;
+            d2_rhdp = 1;
+            digit_2 = LHS % 10;
+            digit_3 = LHS / 10;
+            digit_4 = -1;
+            digit_5 = -1;
+#if DEBUG
+            print_digits(true);
+#endif
+            break;
         }
 
-        digit_0 = temp % 10;
-        digit_1 = temp / 10;
-        digit_2 = -1;
-        digit_3 = -1;
-        digit_4 = rh % 10;
-        digit_5 = rh / 10;
-#if DEBUG
-        print("Trials: %d\n", trials);
-        print_digits(true);
-#endif
-        break;
-    }
-
-    case WEATHER_DISPLAY_DURATION:
-    {
-        blank_dp();
-        
-        // for altitude correction: 1 hPa decrease per 30 feet above MSL
-        float station_msl = 5560.0; // feet
-        float hPa_station_correction = station_msl / 30.0; // pre compute
-        float pressure = (baro.getPressure() + hPa_station_correction) * inch_Hg_per_hPa;
-
-        int LHS = (int)pressure;
-        int RHS = (int)((pressure - LHS) * 100.0);
-#if DEBUG
-        Serial.print("LHS: "); Serial.println(LHS);
-        Serial.print("RHS: "); Serial.println(RHS);
-#endif
-        digit_0 = RHS % 10;
-        digit_1 = RHS / 10;
-        d2_rhdp = 1;
-        digit_2 = LHS % 10;
-        digit_3 = LHS / 10;
-        digit_4 = -1;
-        digit_5 = -1;
-#if DEBUG
-        print_digits(true);
-#endif
-        break;
-    }
-
-    default:
-        break;
+        default:
+            break;
     }
 }

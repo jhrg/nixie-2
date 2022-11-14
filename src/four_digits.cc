@@ -101,31 +101,16 @@ void print(const char *fmt, ...) {
  * Print the values of the current digits
  */
 void print_digits(bool newline) {
-    print("%02d-%02d-%02d-%02d-%02d-%02d\n", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
-#if 0
-    char str[64];
-    snprintf(str, 64, "%02d-%02d-%02d-%02d-%02d-%02d", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
-    Serial.print(str);
-    if (newline)
-        Serial.println();
-#endif
+    print("%01d-%01d-%01d-%01d-%01d-%01d\n", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
 }
 
 /**
  * Print the current time, formatted
  */
 void print_time(DateTime dt, bool print_newline = false) {
-    print("%02d/%02d/%02d %02d:%02d:%02d\n", dt.year(), dt.month(),
-          dt.day(), dt.hour(), dt.minute(), dt.second());
-#if 0
     // or Serial.println(now.toString(buffer));, buffer == YY/MM/DD hh:mm:ss
-    char str[64];
-    snprintf(str, 64, "%02d-%02d-%02d %02d:%02d:%02d", dt.year(), dt.month(),
-             dt.day(), dt.hour(), dt.minute(), dt.second());
-    Serial.print(str);
-    if (print_newline)
-        Serial.println();
-#endif
+    print("%02d/%02d/%02d %02d:%02d:%02d", dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second());
+    if (print_newline) print("\n");
 }
 
 /**
@@ -140,9 +125,12 @@ void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
 
     if (get_time_duration != 0) {
         print_time(dt, false);
+        print(", I2C time query: %ld uS\n", get_time_duration);
+#if 0
         Serial.print(", I2C time query: ");
         Serial.print(get_time_duration);
         Serial.println(" uS");
+#endif
     } else {
         print_time(dt, true);
     }
@@ -179,30 +167,20 @@ void update_display_with_date() {
 }
 
 void update_display_using_mode() {
-    // This quiets the 'weather' display, but needs to be reset when that mode
-    // is exited.
-    static int weather_state = 0;
-
     switch (main_mode) {
-    case show_time:
-        weather_state = 0;
-        update_display_with_time();
-        break;
+        case show_time:
+            update_display_with_time();
+            break;
 
-    case show_date:
-        weather_state = 0;
-        update_display_with_date();
+        case show_date:
+            update_display_with_date();
 #if DEBUG
         print_digits(true);
 #endif
         break;
 
     case show_weather: {
-        // 4 seconds; state 1,2,...n/2 == temp & humidity, n/2,..., N baro pressure,
-        update_display_with_weather(weather_state);
-        weather_state = (weather_state < WEATHER_DISPLAY_DURATION << 1) ? weather_state + 1 : 0;
-
-        // could return to time here when weather_state == 1 again (after one cycle)
+        update_display_with_weather();
         break;
     }
 
@@ -363,6 +341,7 @@ void setup() {
 
     // Temperature and humidity sensor
     dht.begin();
+    initialize_DHT_values();
 
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
