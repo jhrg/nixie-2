@@ -1,5 +1,5 @@
 /*
-  Four digit clock.
+  Six digit clock.
 
   10/1/22 jhrg
 */
@@ -56,14 +56,7 @@ uint8_t bcd[10] = {
 // PORTD, the decimal points
 #define RHDP B00100000 // D5
 
-#if USE_DS3231
 RTC_DS3231 rtc;
-#elif USE_DS1307
-RTC_DS1307 rtc;
-#else
-#error "Must define one of DS3231 or DS1307"
-#endif
-
 extern DHT_Unified dht;
 extern Adafruit_MPL3115A2 baro;
 

@@ -33,14 +33,7 @@ extern volatile int digit_5;
 
 extern DateTime dt; // This is clock's time, updated when set-time mode is exited
 DateTime new_dt;    // initialized to 'dt' when set_time mode is entered
-
-#if USE_DS3231
 extern RTC_DS3231 rtc;
-#elif USE_DS1307
-extern RTC_DS1307 rtc;
-#else
-#error "Must define one of DS3231 or DS1307"
-#endif
 
 void main_mode_next() {
     switch (main_mode) {
