@@ -60,92 +60,92 @@ void main_mode_next() {
  */
 void set_date_time_mode_next() {
     switch (set_time_mode) {
-        case set_month:
-            set_time_mode = set_day;
-            break;
+    case set_month:
+        set_time_mode = set_day;
+        break;
 
-        case set_day:
-            set_time_mode = set_year;
-            break;
+    case set_day:
+        set_time_mode = set_year;
+        break;
 
-        case set_year:
-            set_time_mode = set_hour;
-            break;
+    case set_year:
+        set_time_mode = set_hour;
+        break;
 
-        case set_hour:
-            set_time_mode = set_minute;
-            break;
+    case set_hour:
+        set_time_mode = set_minute;
+        break;
 
-        case set_minute:
-            set_time_mode = zero_seconds;
-            break;
+    case set_minute:
+        set_time_mode = zero_seconds;
+        break;
 
-        case zero_seconds:
-            set_time_mode = set_day;
-            break;
+    case zero_seconds:
+        set_time_mode = set_day;
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 }
 
 void set_date_time_mode_advance_by_one() {
     switch (set_time_mode) {
-        case set_month: {
-            if (new_dt.month() == 12) {
-                new_dt = DateTime(new_dt.year(), 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
-            } else {
-                new_dt = DateTime(new_dt.year(), new_dt.month() + 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
-            }
-            break;
+    case set_month: {
+        if (new_dt.month() == 12) {
+            new_dt = DateTime(new_dt.year(), 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
+        } else {
+            new_dt = DateTime(new_dt.year(), new_dt.month() + 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
         }
+        break;
+    }
 
-        case set_day: {
-            if (new_dt.day() == 31) {
-                new_dt = DateTime(new_dt.year(), new_dt.month(), 1, new_dt.hour(), new_dt.minute(), new_dt.second());
-            } else {
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day() + 1, new_dt.hour(), new_dt.minute(), new_dt.second());
-            }
-            break;
+    case set_day: {
+        if (new_dt.day() == 31) {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), 1, new_dt.hour(), new_dt.minute(), new_dt.second());
+        } else {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day() + 1, new_dt.hour(), new_dt.minute(), new_dt.second());
         }
+        break;
+    }
 
-        case set_year: {
-            if (new_dt.year() == 2099) {
-                new_dt = DateTime(2000, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
-            } else {
-                new_dt = DateTime(new_dt.year() + 1, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
-            }
-            break;
+    case set_year: {
+        if (new_dt.year() == 2099) {
+            new_dt = DateTime(2000, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
+        } else {
+            new_dt = DateTime(new_dt.year() + 1, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
         }
+        break;
+    }
 
-        case set_hour: {
-            if (new_dt.hour() == 23) {
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
-            } else {
-                uint8_t hour = new_dt.hour() + 1;
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), hour, new_dt.minute(), new_dt.second());
-            }
-            break;
+    case set_hour: {
+        if (new_dt.hour() == 23) {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
+        } else {
+            uint8_t hour = new_dt.hour() + 1;
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), hour, new_dt.minute(), new_dt.second());
         }
+        break;
+    }
 
-        case set_minute: {
-            if (new_dt.minute() == 59) {
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), 0, new_dt.second());
-            } else {
-                uint8_t minute = new_dt.minute() + 1;
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), minute, new_dt.second());
-            }
-            break;
+    case set_minute: {
+        if (new_dt.minute() == 59) {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), 0, new_dt.second());
+        } else {
+            uint8_t minute = new_dt.minute() + 1;
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), minute, new_dt.second());
         }
+        break;
+    }
 
-        case zero_seconds:
-            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), 0);
-            rtc.adjust(new_dt);  // Set the clock to the new time
-            dt = rtc.now();      // Update the global variable that holds the time
-            break;
+    case zero_seconds:
+        new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), 0);
+        rtc.adjust(new_dt); // Set the clock to the new time
+        dt = rtc.now();     // Update the global variable that holds the time
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 }
 
@@ -156,31 +156,31 @@ void set_date_time_mode_advance_by_one() {
 // Called from the main loop frequently
 void set_date_time_mode_handler() {
     switch (set_time_mode) {
-        case set_year:
-        case set_month:
-        case set_day:
-            digit_0 = new_dt.year() % 10;
-            digit_1 = (new_dt.year() - 2000) / 10;
+    case set_year:
+    case set_month:
+    case set_day:
+        digit_0 = new_dt.year() % 10;
+        digit_1 = (new_dt.year() - 2000) / 10;
 
-            digit_2 = new_dt.day() % 10;
-            digit_3 = new_dt.day() / 10;
+        digit_2 = new_dt.day() % 10;
+        digit_3 = new_dt.day() / 10;
 
-            digit_4 = new_dt.month() % 10;
-            digit_5 = new_dt.month() / 10;
-            break;
+        digit_4 = new_dt.month() % 10;
+        digit_5 = new_dt.month() / 10;
+        break;
 
-        case set_hour:
-        case set_minute:
-        case zero_seconds:
-            digit_0 = new_dt.second() % 10;
-            digit_1 = new_dt.second() / 10;
+    case set_hour:
+    case set_minute:
+    case zero_seconds:
+        digit_0 = new_dt.second() % 10;
+        digit_1 = new_dt.second() / 10;
 
-            digit_2 = new_dt.minute() % 10;
-            digit_3 = new_dt.minute() / 10;
+        digit_2 = new_dt.minute() % 10;
+        digit_3 = new_dt.minute() / 10;
 
-            digit_4 = new_dt.hour() % 10;
-            digit_5 = new_dt.hour() / 10;
-            break;
+        digit_4 = new_dt.hour() % 10;
+        digit_5 = new_dt.hour() / 10;
+        break;
     }
 
     // This provides a way to track how long the switch is being held down and thus how
@@ -191,34 +191,34 @@ void set_date_time_mode_handler() {
     // from being incremented and extra time when a long press is released
     if (input_switch_released && input_switch_duration < SWITCH_PRESS_2S) {
         set_date_time_mode_advance_by_one();
-        } else if (input_switch_press && !input_switch_released) {
-            // This duration is the time the switch has been held down before being released.
-            // Different from the time the switch _was_ held down before being released, which
-            // is measured by the global input_switch_duration
-            unsigned long duration = millis() - input_switch_time;
-            if (duration > SWITCH_PRESS_10S) {
-                // call set_time_mode_advance_by_one() really often (1/10th a second)
-                if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
-                    Serial.println("Really fast");
-                    set_date_time_mode_advance_by_one();
-                    last_input_call_time = millis();
-                }
-            } else if (duration > SWITCH_PRESS_5S) {
-                // call set_time_mode_advance_by_one() often (half second)
-                if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_FAST)) {
-                    Serial.println("fast");
-                    set_date_time_mode_advance_by_one();
-                    last_input_call_time = millis();
-                }
-            } else if (duration > SWITCH_PRESS_2S) {
-                // call set_time_mode_advance_by_one() once per second
-                if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE)) {
-                    Serial.println("regular");
-                    set_date_time_mode_advance_by_one();
-                    last_input_call_time = millis();
-                }
+    } else if (input_switch_press && !input_switch_released) {
+        // This duration is the time the switch has been held down before being released.
+        // Different from the time the switch _was_ held down before being released, which
+        // is measured by the global input_switch_duration
+        unsigned long duration = millis() - input_switch_time;
+        if (duration > SWITCH_PRESS_10S) {
+            // call set_time_mode_advance_by_one() really often (1/10th a second)
+            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
+                Serial.println("Really fast");
+                set_date_time_mode_advance_by_one();
+                last_input_call_time = millis();
+            }
+        } else if (duration > SWITCH_PRESS_5S) {
+            // call set_time_mode_advance_by_one() often (half second)
+            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_FAST)) {
+                Serial.println("fast");
+                set_date_time_mode_advance_by_one();
+                last_input_call_time = millis();
+            }
+        } else if (duration > SWITCH_PRESS_2S) {
+            // call set_time_mode_advance_by_one() once per second
+            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE)) {
+                Serial.println("regular");
+                set_date_time_mode_advance_by_one();
+                last_input_call_time = millis();
             }
         }
+    }
 
     // If the input switch was released, reset the state and the also last_input_call_time
     if (input_switch_released) {
@@ -248,7 +248,10 @@ void mode_switch_push() {
         // Triggered on the rising edge is the button press; start the timer
         mode_switch_duration = 0;
         mode_switch_time = interrupt_time;
+        attachPCINT(digitalPinToPCINT(MODE_SWITCH), mode_switch_release, FALLING);
+#if 0
         attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_release, FALLING);
+#endif
     }
 
     last_interrupt_time = interrupt_time;
@@ -263,7 +266,10 @@ void mode_switch_release() {
 
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
         Serial.println("mode switch release");
+        attachPCINT(digitalPinToPCINT(MODE_SWITCH), mode_switch_push, RISING);
+#if 0
         attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, RISING);
+#endif
         mode_switch_duration = interrupt_time - mode_switch_time;
         mode_switch_time = interrupt_time;
 
@@ -275,9 +281,7 @@ void mode_switch_release() {
         if (mode_switch_duration > SWITCH_PRESS_5S) {
             // noop for now
             Serial.println("very long press: ?");
-        }
-        else if (mode_switch_duration > SWITCH_PRESS_2S)
-        {
+        } else if (mode_switch_duration > SWITCH_PRESS_2S) {
             Serial.print("long press: ");
             if (mode == main) {
                 Serial.println("set time");
@@ -291,9 +295,7 @@ void mode_switch_release() {
             } else {
                 Serial.println("?");
             }
-        }
-        else
-        {
+        } else {
             Serial.print("short press: ");
             if (mode == main) {
                 main_mode_next();

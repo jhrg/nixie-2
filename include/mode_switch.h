@@ -1,5 +1,5 @@
 
-#define MODE_SWITCH 3  // D3
+#define MODE_SWITCH 5  // D5
 #define INPUT_SWITCH 4 // D4
 
 void mode_switch_push();

@@ -413,7 +413,7 @@ void setup() {
 
     // MODE_SWITCH is D3, external 1k pullup
     pinMode(MODE_SWITCH, INPUT);
-    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, RISING);
+    attachPCINT(digitalPinToPCINT(MODE_SWITCH), mode_switch_push, RISING);
 
     // INPUT_SWITCH is D4, external 1k pullup
     pinMode(INPUT_SWITCH, INPUT);
