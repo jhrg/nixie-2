@@ -3,7 +3,7 @@
 #include <Adafruit_MPL3115A2.h>
 
 
-#define DHTPIN 5      // Digital pin connected to the DHT sensor
+#define DHTPIN 6      // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT22 // DHT 22 (AM2302)
 
 #define inch_Hg_per_hPa 0.02953
