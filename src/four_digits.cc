@@ -54,7 +54,7 @@ uint8_t bcd[10] = {
 #define DIGIT_5 B00100000 // D13
 
 // PORTD, the decimal points
-#define RHDP B00100000 // D5
+#define RHDP B10000000 // D7
 
 RTC_DS3231 rtc;
 extern DHT_Unified dht;
@@ -299,7 +299,7 @@ ISR(TIMER2_COMPA_vect) {
     } else {
         // blank_display
         PORTB &= B00000000;
-        PORTD &= B11011111;
+        PORTD &= ~RHDP;     // B01111111;
 
         // State is blanking
         blanking = true;
@@ -317,6 +317,16 @@ void setup() {
     // Enable some minor, chatty, messages on the serial line.
     Serial.begin(BAUD_RATE);
     Serial.println("boot");
+
+    // Initialize all I/O pins to output, then set up the inputs/interrupts
+    DDRD = B11111111;   // D0 - D7
+    DDRC = B00111111;   // A0 - A5, bit 6 is RST, 7 is undefined
+    DDRB = B00111111;   // D8 - D13, bits 6,7 are for the crystall
+
+    // Initialize all GPIO pins to LOW
+    PORTD = B00000000;
+    PORTC = B00000000;
+    PORTB = B00000000;
 
     Wire.begin();
 
@@ -397,11 +407,6 @@ void setup() {
     blanking = true;
     digit = 1;
 
-    // Initialize all I/O pins to output, then set up the inputs/interrupts
-    DDRD = B11111111;
-    DDRC = B00111111;
-    DDRB = B00111111;
-
     cli(); // stop interrupts
 
     // This is used for the 1Hz pulse from the clock that triggers
@@ -411,11 +416,11 @@ void setup() {
     // time_1Hz_tick() sets a flag that is tested in loop()
     attachInterrupt(digitalPinToInterrupt(CLOCK_1HZ), timer_1HZ_tick_ISR, RISING);
 
-    // MODE_SWITCH is D3, external 1k pullup
+    // MODE_SWITCH is D3, external 1k pull down
     pinMode(MODE_SWITCH, INPUT);
     attachPCINT(digitalPinToPCINT(MODE_SWITCH), mode_switch_push, RISING);
 
-    // INPUT_SWITCH is D4, external 1k pullup
+    // INPUT_SWITCH is D4, external 1k pull down
     pinMode(INPUT_SWITCH, INPUT);
     attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
@@ -458,7 +463,7 @@ void main_mode_handler() {
             dt = dt + ts;   // Advance 'dt' by one second
         }
 
-#if 0
+#if 1
         // hack - 
         if (tick_count & B00000001) {
             d2_rhdp = 1;
