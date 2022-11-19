@@ -315,6 +315,7 @@ void mode_switch_release() {
                 new_dt = dt; // initialize the new DateTime object to now
             } else if (mode == set_date_time) {
                 Serial.println("main");
+                blank_dp();
                 mode = main;
             } else {
                 Serial.println("?");
