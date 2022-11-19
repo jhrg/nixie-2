@@ -248,8 +248,8 @@ void set_date_time_mode_handler() {
 
     // If the input switch was released, reset the state and the also last_input_call_time
     if (input_switch_released) {
-        input_switch_released = false; // input_switch_released is only reset in this function
-        last_input_call_time = 0;
+        input_switch_released = false;  // input_switch_released is only reset in this function
+        last_input_call_time = 0;       // last_input... is static local to this function
     }
 }
 
