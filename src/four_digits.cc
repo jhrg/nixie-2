@@ -119,11 +119,6 @@ void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
     if (get_time_duration != 0) {
         print_time(dt, false);
         print(", I2C time query: %ld uS\n", get_time_duration);
-#if 0
-        Serial.print(", I2C time query: ");
-        Serial.print(get_time_duration);
-        Serial.println(" uS");
-#endif
     } else {
         print_time(dt, true);
     }

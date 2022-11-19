@@ -6,6 +6,7 @@
 #include "mode_switch.h"
 
 extern void print_digits(bool newline);
+extern void blank_dp();
 
 #define SWITCH_INTERVAL 150    // ms
 #define SWITCH_PRESS_2S 2000   // 2 Seconds
@@ -30,6 +31,13 @@ extern volatile int digit_2;
 extern volatile int digit_3;
 extern volatile int digit_4;
 extern volatile int digit_5;
+
+extern volatile int d0_rhdp;
+extern volatile int d1_rhdp;
+extern volatile int d2_rhdp;
+extern volatile int d3_rhdp;
+extern volatile int d4_rhdp;
+extern volatile int d5_rhdp;
 
 extern DateTime dt; // This is clock's time, updated when set-time mode is exited
 DateTime new_dt;    // initialized to 'dt' when set_time mode is entered
@@ -62,26 +70,44 @@ void set_date_time_mode_next() {
     switch (set_time_mode) {
     case set_month:
         set_time_mode = set_day;
+        blank_dp();
+        d3_rhdp = 1;
+        d2_rhdp = 1;
         break;
 
     case set_day:
         set_time_mode = set_year;
+        blank_dp();
+        d1_rhdp = 1;
+        d0_rhdp = 1;
         break;
 
     case set_year:
         set_time_mode = set_hour;
+        blank_dp();
+        d5_rhdp = 1;
+        d4_rhdp = 1;
         break;
 
     case set_hour:
         set_time_mode = set_minute;
+        blank_dp();
+        d3_rhdp = 1;
+        d2_rhdp = 1;
         break;
 
     case set_minute:
         set_time_mode = zero_seconds;
+        blank_dp();
+        d1_rhdp = 1;
+        d0_rhdp = 1;
         break;
 
     case zero_seconds:
         set_time_mode = set_day;
+        blank_dp();
+        d5_rhdp = 1;
+        d4_rhdp = 1;
         break;
 
     default:
@@ -249,9 +275,6 @@ void mode_switch_push() {
         mode_switch_duration = 0;
         mode_switch_time = interrupt_time;
         attachPCINT(digitalPinToPCINT(MODE_SWITCH), mode_switch_release, FALLING);
-#if 0
-        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_release, FALLING);
-#endif
     }
 
     last_interrupt_time = interrupt_time;
@@ -267,9 +290,6 @@ void mode_switch_release() {
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
         Serial.println("mode switch release");
         attachPCINT(digitalPinToPCINT(MODE_SWITCH), mode_switch_push, RISING);
-#if 0
-        attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), mode_switch_push, RISING);
-#endif
         mode_switch_duration = interrupt_time - mode_switch_time;
         mode_switch_time = interrupt_time;
 
@@ -287,6 +307,10 @@ void mode_switch_release() {
                 Serial.println("set time");
                 mode = set_date_time;
                 set_time_mode = set_month;
+
+                blank_dp();  // Highlight digits to be set
+                d5_rhdp = 1;
+                d4_rhdp = 1;
 
                 new_dt = dt; // initialize the new DateTime object to now
             } else if (mode == set_date_time) {
