@@ -324,6 +324,7 @@ void mode_switch_release() {
             Serial.print("short press: ");
             if (mode == main) {
                 main_mode_next();
+                blank_dp();     // Added for quick change from weather to date
                 Serial.print("Main mode ");
                 Serial.println(main_mode);
             } else if (mode == set_date_time) {

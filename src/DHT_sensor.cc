@@ -159,10 +159,14 @@ void update_display_with_weather() {
 
             digit_0 = temp % 10;
             digit_1 = temp / 10;
+            d0_rhdp = 1;
+
             digit_2 = -1;
             digit_3 = -1;
+
             digit_4 = rh % 10;
             digit_5 = rh / 10;
+            d4_rhdp = 1;
 #if DEBUG
             print_digits(true);
 #endif
@@ -186,6 +190,7 @@ void update_display_with_weather() {
             d2_rhdp = 1;
             digit_2 = LHS % 10;
             digit_3 = LHS / 10;
+
             digit_4 = -1;
             digit_5 = -1;
 #if DEBUG

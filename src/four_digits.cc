@@ -103,7 +103,8 @@ void print_digits(bool newline) {
 void print_time(DateTime dt, bool print_newline = false) {
     // or Serial.println(now.toString(buffer));, buffer == YY/MM/DD hh:mm:ss
     print("%02d/%02d/%02d %02d:%02d:%02d", dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second());
-    if (print_newline) print("\n");
+    if (print_newline)
+        print("\n");
 }
 
 /**
@@ -155,13 +156,17 @@ void update_display_with_date() {
 }
 
 void update_display_using_mode() {
-    switch (main_mode) {
-        case show_time:
-            update_display_with_time();
-            break;
+    static bool blinker = false;    // blink dp for date
 
-        case show_date:
-            update_display_with_date();
+    switch (main_mode) {
+    case show_time:
+        update_display_with_time();
+        break;
+
+    case show_date:
+        blinker = !blinker;
+        d0_rhdp = blinker ? 1 : 0;
+        update_display_with_date();
 #if DEBUG
         print_digits(true);
 #endif
@@ -294,7 +299,7 @@ ISR(TIMER2_COMPA_vect) {
     } else {
         // blank_display
         PORTB &= B00000000;
-        PORTD &= ~RHDP;     // B01111111;
+        PORTD &= ~RHDP; // B01111111;
 
         // State is blanking
         blanking = true;
@@ -314,9 +319,9 @@ void setup() {
     Serial.println("boot");
 
     // Initialize all I/O pins to output, then set up the inputs/interrupts
-    DDRD = B11111111;   // D0 - D7
-    DDRC = B00111111;   // A0 - A5, bit 6 is RST, 7 is undefined
-    DDRB = B00111111;   // D8 - D13, bits 6,7 are for the crystall
+    DDRD = B11111111; // D0 - D7
+    DDRC = B00111111; // A0 - A5, bit 6 is RST, 7 is undefined
+    DDRB = B00111111; // D8 - D13, bits 6,7 are for the crystall
 
     // Initialize all GPIO pins to LOW
     PORTD = B00000000;
@@ -458,7 +463,7 @@ void main_mode_handler() {
             dt = dt + ts;   // Advance 'dt' by one second
         }
 
-#if 1
+#if 0
         // hack - 
         if (tick_count & B00000001) {
             d2_rhdp = 1;
