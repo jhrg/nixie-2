@@ -80,6 +80,7 @@ volatile int d4_rhdp;
 volatile int d5_rhdp;
 
 // TODO move this if it's useful
+// Isolate all use of printing via Serial to one function
 void print(const char *fmt, ...) {
     char msg[128];
     va_list ap;
@@ -89,6 +90,12 @@ void print(const char *fmt, ...) {
 
     Serial.print(msg);
 }
+
+#if DEBUG
+#define DPRINT(fmt, ...) print(fmt, __VA_ARGS__)
+#else
+#define DPRINT(fmt, ...)
+#endif
 
 /**
  * Print the values of the current digits
@@ -462,17 +469,6 @@ void main_mode_handler() {
             TimeSpan ts(1); // a one-second time span
             dt = dt + ts;   // Advance 'dt' by one second
         }
-
-#if 0
-        // hack - 
-        if (tick_count & B00000001) {
-            d2_rhdp = 1;
-            d4_rhdp = 1;
-        } else {
-            d2_rhdp = 0;
-            d4_rhdp = 0;
-        }
-#endif
 
         update_display = true;
     }
