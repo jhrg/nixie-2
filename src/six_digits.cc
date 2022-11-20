@@ -5,12 +5,12 @@
 */
 
 #include <Arduino.h>
-
 #include <PinChangeInterrupt.h>
-#include <RTClib.h> // https://github.com/adafruit/RTClib
+#include <RTClib.h>  // https://github.com/adafruit/RTClib
 
 #include "DHT_sensor.h"
 #include "mode_switch.h"
+#include "print.h"
 
 extern volatile enum modes mode;
 extern volatile enum main_modes main_mode;
@@ -64,7 +64,7 @@ extern Adafruit_MPL3115A2 baro;
 volatile bool blanking;
 volatile int digit;
 
-// The current display digits
+// The display digits
 volatile int digit_0;
 volatile int digit_1;
 volatile int digit_2;
@@ -78,24 +78,6 @@ volatile int d2_rhdp;
 volatile int d3_rhdp;
 volatile int d4_rhdp;
 volatile int d5_rhdp;
-
-// TODO move this if it's useful
-// Isolate all use of printing via Serial to one function
-void print(const char *fmt, ...) {
-    char msg[128];
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(msg, sizeof(msg), fmt, ap); // copies args
-    va_end(ap);
-
-    Serial.print(msg);
-}
-
-#if DEBUG
-#define DPRINT(fmt, ...) print(fmt, __VA_ARGS__)
-#else
-#define DPRINT(fmt, ...)
-#endif
 
 /**
  * Print the values of the current digits
@@ -120,9 +102,13 @@ void print_time(DateTime dt, bool print_newline = false) {
  */
 void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
     static unsigned int n = 0;
+#if 0
     Serial.print("Display: ");
     Serial.print(n++);
     Serial.print(", ");
+#endif
+
+    print("Display: %d, ", n++);
 
     if (get_time_duration != 0) {
         print_time(dt, false);
@@ -223,8 +209,8 @@ void timer_1HZ_tick_ISR() {
  */
 int brightness = 1;
 
-int brightness_count[] = {224, 199, 174, 149, 124};  // 900us, ..., 500us
-int blanking_count[] = {24, 49, 74, 99, 124};        // 100us, ..., 500us
+static int brightness_count[] = {224, 199, 174, 149, 124};  // 900us, ..., 500us
+static int blanking_count[] = {24, 49, 74, 99, 124};        // 100us, ..., 500us
 
 /**
  * @brief The display multiplexing code. A simple state-machine
@@ -339,7 +325,8 @@ ISR(TIMER2_COMPA_vect) {
 void setup() {
     // Enable some minor, chatty, messages on the serial line.
     Serial.begin(BAUD_RATE);
-    Serial.println("boot");
+    print("Boot\n");
+    //Serial.println("boot");
 
     // Initialize all I/O pins to output, then set up the inputs/interrupts
     DDRD = B11111111; // D0 - D7
@@ -354,40 +341,39 @@ void setup() {
     Wire.begin();
 
     if (!rtc.begin()) {
-        Serial.println("Couldn't find RTC");
-        Serial.flush();
+        print("Couldn't find RTC\n");
+        flush();
         // TODO Set error flag
     }
 
     if (!baro.begin()) {
-        Serial.println("Couldn't setup MPL3115A2");
-        Serial.flush();
+        print("Couldn't setup MPL3115A2\n");
+        flush();
         // TODO Set error flag
     }
 
     // Temperature and humidity sensor
     dht.begin();
-    initialize_DHT_values();
+    if (initialize_DHT_values()) {
+        print("Couldn't setup the DHT22\n");
+        flush();
+    }
 
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
     // between the compiled-in times and the set operation.
-    Serial.print("Build date: ");
-    Serial.println(__DATE__);
-    Serial.print("Build time: ");
-    Serial.println(__TIME__);
+    print("Build date: %s\n", __DATE__);
+    print("Build time: %s\n", __TIME__);
 
     DateTime build_time = DateTime(F(__DATE__), F(__TIME__));
     TimeSpan ts(ADJUST_TIME);
     build_time = build_time + ts;
     DateTime now = rtc.now();
 
-    Serial.print(now.unixtime());
-    Serial.print(", ");
-    Serial.println(build_time.unixtime());
+    print("%ld, %ld\n", now.unixtime(), build_time.unixtime());
 
     if (abs(now.unixtime() - build_time.unixtime()) > 60) {
-        Serial.print("Adjusting the time: ");
+        print("Adjusting the time: ");
         print_time(build_time, true);
 
         rtc.adjust(build_time);

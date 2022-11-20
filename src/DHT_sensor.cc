@@ -29,42 +29,29 @@ extern void blank_dp();     // defined in four_digits.cc
 void test_dht_22() {
     sensor_t sensor;
     dht.temperature().getSensor(&sensor);
-    Serial.println(F("------------------------------------"));
-    Serial.println(F("Temperature Sensor"));
-    Serial.print(F("Sensor Type: "));
-    Serial.println(sensor.name);
-    Serial.print(F("Driver Ver:  "));
-    Serial.println(sensor.version);
-    Serial.print(F("Unique ID:   "));
-    Serial.println(sensor.sensor_id);
-    Serial.print(F("Max Value:   "));
-    Serial.print(sensor.max_value);
-    Serial.println(F("°C"));
-    Serial.print(F("Min Value:   "));
-    Serial.print(sensor.min_value);
-    Serial.println(F("°C"));
-    Serial.print(F("Resolution:  "));
-    Serial.print(sensor.resolution);
-    Serial.println(F("°C"));
-    Serial.println(F("------------------------------------"));
-    // Print humidity sensor details.
+
+    // Temperature sensor details
+    DPRINT("------------------------------------");
+    DPRINT("Temperature Senor");
+    DPRINTV("Sensor Type: %s\n", sensor.name);
+    DPRINTV("Driver Ver:  %d\n", sensor.version);
+    DPRINTV("Unique ID:   %d\n", sensor.sensor_id);
+    DPRINTV("Max Value:   %f °C\n", sensor.max_value);
+    DPRINTV("Min Value:   %f °C\n", sensor.min_value);
+    DPRINTV("Resolution:  %f °C\n", sensor.resolution);
+   
     dht.humidity().getSensor(&sensor);
-    Serial.println(F("Humidity Sensor"));
-    Serial.print(F("Sensor Type: "));
-    Serial.println(sensor.name);
-    Serial.print(F("Driver Ver:  "));
-    Serial.println(sensor.version);
-    Serial.print(F("Unique ID:   "));
-    Serial.println(sensor.sensor_id);
-    Serial.print(F("Max Value:   "));
-    Serial.print(sensor.max_value);
-    Serial.println(F("%"));
-    Serial.print(F("Min Value:   "));
-    Serial.print(sensor.min_value);
-    Serial.println(F("%"));
-    Serial.print(F("Resolution:  "));
-    Serial.print(sensor.resolution);
-    Serial.println(F("%"));
+
+    // Print humidity sensor details.
+    DPRINT("------------------------------------");
+    DPRINT("Humidity Sensor");
+    DPRINTV("Sensor Type: %s\n", sensor.name);
+    DPRINTV("Driver Ver:  %d\n", sensor.version);
+    DPRINTV("Unique ID:   %d\n", sensor.sensor_id);
+    DPRINTV("Max Value:   %f %\n", sensor.max_value);
+    DPRINTV("Min Value:   %f %\n", sensor.min_value);
+    DPRINTV("Resolution:  %f %\n", sensor.resolution);
+
 }
 
 void test_MPL3115A2() {
@@ -72,16 +59,10 @@ void test_MPL3115A2() {
     float altitude = baro.getAltitude();
     float temperature = baro.getTemperature();
 
-    Serial.println(F("------------------------------------"));
-    Serial.print("pressure = ");
-    Serial.print(pressure);
-    Serial.println(" hPa");
-    Serial.print("altitude = ");
-    Serial.print(altitude);
-    Serial.println(" m");
-    Serial.print("temperature = ");
-    Serial.print(temperature);
-    Serial.println(" C");
+    DPRINT("------------------------------------");
+    DPRINTV("pressure:    %f hPa\n", pressure);
+    DPRINTV("altitude:    %f m\n", altitude);
+    DPRINTV("temperature: %f °C\n", temperature);
 }
 
 // These hold the most recent measurement. Sometimes the DHT
@@ -94,9 +75,14 @@ static float relative_humidity = 0.0;
 static float station_msl = 5560.0;  // feet; could be a config param
 static float hPa_station_correction = 0.0;
 
-void initialize_DHT_values() {
+/**
+ * @brief initialize the DHT22 sensor
+ * @return False if either of the temperature or relative humidity readings fails
+ */
+bool initialize_DHT_values() {
     sensors_event_t event;
     int trial = 0;
+    bool status = true;
 
     dht.temperature().getEvent(&event);
     while (isnan(event.temperature) && trial < 10) {
@@ -108,6 +94,7 @@ void initialize_DHT_values() {
         temperature = event.temperature;
     } else {
         print("DHT Temperature failure on boot\n");
+        status = false;
     }
 
     trial = 0;
@@ -121,9 +108,12 @@ void initialize_DHT_values() {
         relative_humidity = event.relative_humidity;
     } else {
         print("DHT relative humidity failure on boot\n");
+        status = false;
     }
 
     hPa_station_correction = station_msl / 30.0;
+
+    return status;
 }
 
 // The weather display is a simple state machine:
@@ -133,8 +123,7 @@ void update_display_with_weather() {
     static int state = 0;
     if (state > WEATHER_DISPLAY_DURATION - 1) state = 0;
 
-    Serial.print("Weather state: ");
-    Serial.println(state);
+    DPRINTV("Weather state: %d\n", state);
 
     switch (state) {
         case 0: {
@@ -179,12 +168,10 @@ void update_display_with_weather() {
 
             int LHS = (int)pressure;
             int RHS = (int)((pressure - LHS) * 100.0);
-#if DEBUG
-            Serial.print("LHS: ");
-            Serial.println(LHS);
-            Serial.print("RHS: ");
-            Serial.println(RHS);
-#endif
+
+            DPRINTV("LHS: %d\n", LHS);
+            DPRINTV("RHS: %d\n", RHS);
+
             digit_0 = RHS % 10;
             digit_1 = RHS / 10;
             d2_rhdp = 1;

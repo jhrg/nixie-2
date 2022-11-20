@@ -4,6 +4,7 @@
 #include <RTClib.h>
 
 #include "mode_switch.h"
+#include "print.h"
 
 extern void print_digits(bool newline);
 extern void blank_dp();
@@ -225,21 +226,21 @@ void set_date_time_mode_handler() {
         if (duration > SWITCH_PRESS_10S) {
             // call set_time_mode_advance_by_one() really often (1/10th a second)
             if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
-                Serial.println("Really fast");
+                DPRINT("Really fast\n");
                 set_date_time_mode_advance_by_one();
                 last_input_call_time = millis();
             }
         } else if (duration > SWITCH_PRESS_5S) {
             // call set_time_mode_advance_by_one() often (half second)
             if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_FAST)) {
-                Serial.println("fast");
+                DPRINT("Fast\n");
                 set_date_time_mode_advance_by_one();
                 last_input_call_time = millis();
             }
         } else if (duration > SWITCH_PRESS_2S) {
             // call set_time_mode_advance_by_one() once per second
             if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE)) {
-                Serial.println("regular");
+                DPRINT("Regular\n");
                 set_date_time_mode_advance_by_one();
                 last_input_call_time = millis();
             }
@@ -270,7 +271,7 @@ void mode_switch_push() {
     unsigned long interrupt_time = millis();
 
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
-        Serial.println("mode switch push");
+        DPRINT("Mode switch push\n");
         // Triggered on the rising edge is the button press; start the timer
         mode_switch_duration = 0;
         mode_switch_time = interrupt_time;
@@ -288,7 +289,7 @@ void mode_switch_release() {
     unsigned long interrupt_time = millis();
 
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
-        Serial.println("mode switch release");
+        DPRINT("Mode switch release\n");
         attachPCINT(digitalPinToPCINT(MODE_SWITCH), mode_switch_push, RISING);
         mode_switch_duration = interrupt_time - mode_switch_time;
         mode_switch_time = interrupt_time;
@@ -300,11 +301,11 @@ void mode_switch_release() {
         // returns to the main mode
         if (mode_switch_duration > SWITCH_PRESS_5S) {
             // noop for now
-            Serial.println("very long press: ?");
+            DPRINT("Very long press: ?\n");
         } else if (mode_switch_duration > SWITCH_PRESS_2S) {
-            Serial.print("long press: ");
+            DPRINT("long press: ");
             if (mode == main) {
-                Serial.println("set time");
+                DPRINT("set time\n");
                 mode = set_date_time;
                 set_time_mode = set_month;
 
@@ -314,25 +315,23 @@ void mode_switch_release() {
 
                 new_dt = dt; // initialize the new DateTime object to now
             } else if (mode == set_date_time) {
-                Serial.println("main");
+                DPRINT("main\n");
                 blank_dp();
                 mode = main;
             } else {
-                Serial.println("?");
+                DPRINT("?\n");
             }
         } else {
-            Serial.print("short press: ");
+            DPRINT("short press: ");
             if (mode == main) {
                 main_mode_next();
                 blank_dp();     // Added for quick change from weather to date
-                Serial.print("Main mode ");
-                Serial.println(main_mode);
+                DPRINTV("Main mode %d\n", main_mode);
             } else if (mode == set_date_time) {
                 set_date_time_mode_next();
-                Serial.print("set_time mode ");
-                Serial.println(set_time_mode);
+                DPRINTV("set_time mode %s\n", set_time_mode);
             } else {
-                Serial.println("?");
+                DPRINT("?\n");
             }
         }
     }
@@ -353,7 +352,7 @@ void input_switch_push() {
     unsigned long interrupt_time = millis();
 
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
-        Serial.print("input switch press, ");
+        DPRINT("input switch press, ");
 
         input_switch_time = interrupt_time;
         input_switch_duration = 0;
@@ -373,13 +372,12 @@ void input_switch_release() {
     unsigned long interrupt_time = millis();
 
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
-        Serial.print("input switch release, ");
+        DPRINT("input switch release, ");
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
         input_switch_duration = interrupt_time - input_switch_time;
 
-        Serial.print("Duration: ");
-        Serial.println(input_switch_duration);
+        DPRINTV("Duration: %ld\n", input_switch_duration);
 
         input_switch_time = 0; // TODO set to zero in the mode switch code above, too
 
@@ -388,18 +386,18 @@ void input_switch_release() {
 
         if (input_switch_duration > SWITCH_PRESS_5S) {
             // noop for now
-            Serial.println("input very long press: ?");
+            DPRINT("Input very long press: ?\n");
         } else if (input_switch_duration > SWITCH_PRESS_2S) {
-            Serial.print("input long press: ");
+            DPRINT("Input long press: ?\n");
         } else {
-            Serial.print("input short press: ");
+            DPRINT("Input short press: ");
             if (mode == main) {
-                Serial.print("input main mode: ");
+                DPRINTV("input main mode: brightness: %d\n", brightness);
                 brightness = (brightness == 5) ? 1 : brightness + 1;
             } else if (mode == set_date_time) {
-                Serial.print("input set_date_time: ");
+                DPRINT("input set_date_time: ?\n");
             } else {
-                Serial.println("?");
+                DPRINT("?\n");
             }
         }
     }

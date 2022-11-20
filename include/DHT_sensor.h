@@ -13,4 +13,4 @@ void test_dht_22();
 void test_MPL3115A2();
 
 void update_display_with_weather();
-void initialize_DHT_values();
+bool initialize_DHT_values();
