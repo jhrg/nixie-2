@@ -11,6 +11,7 @@
 
 #include "DHT_sensor.h"
 #include "mode_switch.h"
+#include "print.h"
 
 extern volatile enum modes mode;
 extern volatile enum main_modes main_mode;
@@ -79,6 +80,7 @@ volatile int d3_rhdp;
 volatile int d4_rhdp;
 volatile int d5_rhdp;
 
+#if 0
 // TODO move this if it's useful
 // Isolate all use of printing via Serial to one function
 void print(const char *fmt, ...) {
@@ -95,6 +97,7 @@ void print(const char *fmt, ...) {
 #define DPRINT(fmt, ...) print(fmt, __VA_ARGS__)
 #else
 #define DPRINT(fmt, ...)
+#endif
 #endif
 
 /**
