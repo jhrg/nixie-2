@@ -366,6 +366,8 @@ void input_switch_push() {
     last_interrupt_time = interrupt_time;
 }
 
+extern int brightness;
+
 void input_switch_release() {
     static unsigned long last_interrupt_time = 0;
     unsigned long interrupt_time = millis();
@@ -382,7 +384,24 @@ void input_switch_release() {
         input_switch_time = 0; // TODO set to zero in the mode switch code above, too
 
         input_switch_press = false;
-        input_switch_released = true; // reset above
+        input_switch_released = true;  // reset above in set_date_time_mode_handler()
+
+        if (input_switch_duration > SWITCH_PRESS_5S) {
+            // noop for now
+            Serial.println("input very long press: ?");
+        } else if (input_switch_duration > SWITCH_PRESS_2S) {
+            Serial.print("input long press: ");
+        } else {
+            Serial.print("input short press: ");
+            if (mode == main) {
+                Serial.print("input main mode: ");
+                brightness = (brightness == 5) ? 1 : brightness + 1;
+            } else if (mode == set_date_time) {
+                Serial.print("input set_date_time: ");
+            } else {
+                Serial.println("?");
+            }
+        }
     }
 
     last_interrupt_time = interrupt_time;

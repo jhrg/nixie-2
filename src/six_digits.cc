@@ -209,10 +209,27 @@ void timer_1HZ_tick_ISR() {
 }
 
 /**
+ * Set brightness by varying the digit on and off time.
+ *
+ * 900us, 800, 700, 600, 500 with the off time being 100us, 200, ..., 500us
+ * With the pre-scalar at 64, a count of 0 is 4uS, 1 is 8uS, ...,
+ * For example: 224 = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
+ *
+ * There are five brightness levels 1-5 and the counter values for the on and
+ * off times are precomputed and used via the defines below. The brightness
+ * level is held in the following global that can be set by the input button
+ * (see set_mode.cc). The default/initial value is 1 which is the brightest
+ * level.
+ */
+int brightness = 1;
+
+int brightness_count[] = {224, 199, 174, 149, 124};  // 900us, ..., 500us
+int blanking_count[] = {24, 49, 74, 99, 124};        // 100us, ..., 500us
+
+/**
  * @brief The display multiplexing code. A simple state-machine
  */
 ISR(TIMER2_COMPA_vect) {
-    // TODO This might not be needed.
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD |= TIMER_INTERRUPT_TEST_PIN;
@@ -300,9 +317,8 @@ ISR(TIMER2_COMPA_vect) {
         // State is not blanking
         blanking = false;
 
-        // Set the timer to 900uS
-        // With the pre-scalar at 64, a count of 0 is 4uS, 1 is 8uS, ...,
-        OCR2A = 224; // = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
+        // Set the timer to illuminate the digit (e.g., for 900uS)
+        OCR2A = brightness_count[brightness];
     } else {
         // blank_display
         PORTB &= B00000000;
@@ -311,8 +327,8 @@ ISR(TIMER2_COMPA_vect) {
         // State is blanking
         blanking = true;
 
-        // Set the timer to 100uS
-        OCR2A = 24; // = [(16*10^6 / 64 ) * 0.000 052] - 1; (must be <256)
+        // Set the timer to blank for, e.g., 100uS. See above
+        OCR2A = blanking_count[brightness];
     }
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
