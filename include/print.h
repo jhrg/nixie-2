@@ -6,6 +6,7 @@
  */
 
 void print(const char *fmt, ...);
+void print(const __FlashStringHelper *fmt, ...);
 void flush();
 
 #if 0

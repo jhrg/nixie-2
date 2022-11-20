@@ -356,9 +356,11 @@ void setup() {
 
     Wire.begin();
 
-    if (!rtc.begin()) {
-        Serial.println("Couldn't find RTC");
-        Serial.flush();
+    if (rtc.begin()) {
+        print(F("DS3131 RTC Start\n"));
+    }
+    else {
+        print(F("Couldn't find RTC"));
         // TODO Set error flag
     }
 

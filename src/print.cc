@@ -27,17 +27,18 @@ void print(const char *fmt, ...) {
     Serial.print(msg);
 }
 
-#if 0
+
 void print(const __FlashStringHelper *fmt, ...) {
     char msg[128];
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(msg, sizeof(msg), (const char*)fmt, ap);  // copies args
+    vsnprintf(msg, sizeof(msg), (const char*)pgm_read_ptr(fmt), ap);  // copies args
     va_end(ap);
 
     Serial.print(msg);
 }
 
+#if 0
 // another potential solution (that might work)
 // See https://forum.arduino.cc/t/function-that-handles-both-char-and-__flashstringhelper-strings/512100/11
 
