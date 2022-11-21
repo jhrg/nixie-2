@@ -368,15 +368,19 @@ void setup() {
         // TODO Set error flag
     }
 
-    if (!baro.begin()) {
-        Serial.println("Couldn't setup MPL3115A2");
-        Serial.flush();
+    if (baro.begin()) {
+        print(F("MPL3115A2 Start\n"));
+    }
+    else{
+        print(F("Couldn't setup MPL3115A2\n"));
         // TODO Set error flag
     }
 
+#if USE_DHT
     // Temperature and humidity sensor
     dht.begin();
     initialize_DHT_values();
+#endif
 
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
@@ -412,7 +416,9 @@ void setup() {
     dt = rtc.now();
     print_time(dt, true);
 
+#if USE_DHT
     test_dht_22();
+#endif
 
     test_MPL3115A2();
 
@@ -504,10 +510,9 @@ void main_mode_handler() {
         dt = rtc.now(); // This call takes about 1ms
 
         update_display_using_mode();
-    }
-
-    if (update_display)
+    } else if (update_display) {
         update_display_using_mode(); // true == adv time by 1s
+    }
 }
 
 void loop() {

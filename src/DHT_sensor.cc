@@ -143,14 +143,29 @@ void update_display_with_weather() {
     static int state = 0;
     if (state > WEATHER_DISPLAY_DURATION - 1) state = 0;
 
-    Serial.print("Weather state: ");
-    Serial.println(state);
+    DPRINTV("Weather state: %d\n", state);
 
     switch (state) {
         case 0: {
             blank_dp();
+            float temperature = baro.getTemperature() * 9.0 / 5.0 + 32.0;
 
-            sensors_event_t event;
+            int LHS = (int)temperature;
+            int RHS = (int)((temperature - LHS) * 100.0);
+
+            DPRINTV("LHS: %d\n", LHS);
+            DPRINTV("RHS: %d\n", RHS);
+            
+            digit_0 = RHS / 10;
+            d1_rhdp = 1;
+            digit_1 = LHS % 10;
+            digit_2 = LHS / 10;
+
+            digit_3 = -1;
+            digit_4 = -1;
+            digit_5 = -1;
+#if USE_DHT
+                sensors_event_t event;
             dht.temperature().getEvent(&event);
             if (!isnan(event.temperature)) {
                 temperature = event.temperature;
@@ -177,6 +192,8 @@ void update_display_with_weather() {
             digit_4 = rh % 10;
             digit_5 = rh / 10;
             d4_rhdp = 1;
+            #endif
+
 #if DEBUG
             print_digits(true);
 #endif
@@ -189,7 +206,10 @@ void update_display_with_weather() {
 
             int LHS = (int)pressure;
             int RHS = (int)((pressure - LHS) * 100.0);
-#if DEBUG
+
+            DPRINTV("LHS: %d\n", LHS);
+            DPRINTV("RHS: %d\n", RHS);
+#if 0
             Serial.print("LHS: ");
             Serial.println(LHS);
             Serial.print("RHS: ");
