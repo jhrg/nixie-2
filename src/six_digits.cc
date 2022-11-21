@@ -117,23 +117,28 @@ void print_time(DateTime dt, bool print_newline = false) {
         print("\n");
 }
 
+#if 0
 /**
  * Print the current time. Print get_time_duration if it is not zero
  * @param get_time_duration How long did the last get_time transaction take?
  */
 void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
     static unsigned int n = 0;
+#if 0
     Serial.print("Display: ");
     Serial.print(n++);
     Serial.print(", ");
+#endif
+    print(F("Display: %d, "), n++);
 
     if (get_time_duration != 0) {
         print_time(dt, false);
-        print(", I2C time query: %ld uS\n", get_time_duration);
+        print(F(", I2C time query: %ld uS\n"), get_time_duration);
     } else {
         print_time(dt, true);
     }
 }
+#endif
 
 // time - enables advancing time without I2C use. This
 // is global so the value set in setup() will be available
@@ -166,7 +171,7 @@ void update_display_with_date() {
 }
 
 void update_display_using_mode() {
-    static bool blinker = false;    // blink dp for date
+    static bool blinker = false; // blink dp for date
 
     switch (main_mode) {
     case show_time:
@@ -224,10 +229,10 @@ void timer_1HZ_tick_ISR() {
  * (see set_mode.cc). The default/initial value is 1 which is the brightest
  * level.
  */
-int brightness = 1;
+int brightness = 0;
 
-int brightness_count[] = {224, 199, 174, 149, 124};  // 900us, ..., 500us
-int blanking_count[] = {24, 49, 74, 99, 124};        // 100us, ..., 500us
+int brightness_count[] = {224, 199, 174, 149, 24}; // 900us, ..., 100us
+int blanking_count[] = {24, 49, 74, 99, 224};       // 100us, ..., 900us
 
 /**
  * @brief The display multiplexing code. A simple state-machine
@@ -358,8 +363,7 @@ void setup() {
 
     if (rtc.begin()) {
         print(F("DS3131 RTC Start\n"));
-    }
-    else {
+    } else {
         print(F("Couldn't find RTC"));
         // TODO Set error flag
     }

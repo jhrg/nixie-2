@@ -4,6 +4,7 @@
 #include <RTClib.h>
 
 #include "mode_switch.h"
+#include "print.h"
 
 extern void print_digits(bool newline);
 extern void blank_dp();
@@ -248,8 +249,8 @@ void set_date_time_mode_handler() {
 
     // If the input switch was released, reset the state and the also last_input_call_time
     if (input_switch_released) {
-        input_switch_released = false;  // input_switch_released is only reset in this function
-        last_input_call_time = 0;       // last_input... is static local to this function
+        input_switch_released = false; // input_switch_released is only reset in this function
+        last_input_call_time = 0;      // last_input... is static local to this function
     }
 }
 
@@ -308,7 +309,7 @@ void mode_switch_release() {
                 mode = set_date_time;
                 set_time_mode = set_month;
 
-                blank_dp();  // Highlight digits to be set
+                blank_dp(); // Highlight digits to be set
                 d5_rhdp = 1;
                 d4_rhdp = 1;
 
@@ -324,7 +325,7 @@ void mode_switch_release() {
             Serial.print("short press: ");
             if (mode == main) {
                 main_mode_next();
-                blank_dp();     // Added for quick change from weather to date
+                blank_dp(); // Added for quick change from weather to date
                 Serial.print("Main mode ");
                 Serial.println(main_mode);
             } else if (mode == set_date_time) {
@@ -373,33 +374,33 @@ void input_switch_release() {
     unsigned long interrupt_time = millis();
 
     if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
-        Serial.print("input switch release, ");
+        DPRINT("input switch release\n");
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
         input_switch_duration = interrupt_time - input_switch_time;
 
-        Serial.print("Duration: ");
-        Serial.println(input_switch_duration);
+        DPRINTV("Duration: %ld uS\n", input_switch_duration);
+        // Serial.println(input_switch_duration);
 
         input_switch_time = 0; // TODO set to zero in the mode switch code above, too
 
         input_switch_press = false;
-        input_switch_released = true;  // reset above in set_date_time_mode_handler()
+        input_switch_released = true; // reset above in set_date_time_mode_handler()
 
         if (input_switch_duration > SWITCH_PRESS_5S) {
             // noop for now
-            Serial.println("input very long press: ?");
+            //Serial.println("input very long press: ?");
         } else if (input_switch_duration > SWITCH_PRESS_2S) {
-            Serial.print("input long press: ");
+            //Serial.print("input long press: ");
         } else {
-            Serial.print("input short press: ");
+            DPRINT("input short press: ");
             if (mode == main) {
-                Serial.print("input main mode: ");
-                brightness = (brightness == 5) ? 1 : brightness + 1;
+                brightness = (brightness == 4) ? 0 : brightness + 1;
+                DPRINTV("input main mode, brightness: %d\n", brightness);
             } else if (mode == set_date_time) {
-                Serial.print("input set_date_time: ");
+                DPRINT("input set_date_time\n");
             } else {
-                Serial.println("?");
+                //Serial.println("?");
             }
         }
     }

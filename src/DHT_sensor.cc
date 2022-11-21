@@ -2,6 +2,7 @@
 #include <Arduino.h>
 
 #include "DHT_sensor.h"
+#include "print.h"
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 Adafruit_MPL3115A2 baro;
@@ -72,7 +73,11 @@ void test_MPL3115A2() {
     float altitude = baro.getAltitude();
     float temperature = baro.getTemperature();
 
-    Serial.println(F("------------------------------------"));
+    print(F("------------------------------------\n"));
+    print(F("Pressure:    %d hPa\n"), round(pressure));
+    print(F("Altitude:    %d m\n"), round(altitude));
+    print(F("Temperature: %d °C\n"), round(temperature));
+#if 0
     Serial.print("pressure = ");
     Serial.print(pressure);
     Serial.println(" hPa");
@@ -82,6 +87,11 @@ void test_MPL3115A2() {
     Serial.print("temperature = ");
     Serial.print(temperature);
     Serial.println(" C");
+
+    print("------------------------------------\n");
+    int i = 7;
+    print(F("pressure: %lf hPa\n"), i);
+    #endif
 }
 
 // These hold the most recent measurement. Sometimes the DHT
