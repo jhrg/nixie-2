@@ -79,21 +79,6 @@ void test_MPL3115A2() {
     print(F("Pressure:    %d hPa\n"), round(pressure));
     print(F("Altitude:    %d m\n"), round(altitude));
     print(F("Temperature: %d °C\n"), round(temperature));
-#if 0
-    Serial.print("pressure = ");
-    Serial.print(pressure);
-    Serial.println(" hPa");
-    Serial.print("altitude = ");
-    Serial.print(altitude);
-    Serial.println(" m");
-    Serial.print("temperature = ");
-    Serial.print(temperature);
-    Serial.println(" C");
-
-    print("------------------------------------\n");
-    int i = 7;
-    print(F("pressure: %lf hPa\n"), i);
-#endif
 }
 
 #if USE_DHT
@@ -138,7 +123,8 @@ void initialize_DHT_values() {
 
 // for altitude correction: 1 hPa decrease per 30 feet above MS
 static float station_msl = 5560.0; // feet; could be a config param
-static float hPa_station_correction = station_msl / 30.0;;
+static float hPa_station_correction = station_msl / 30.0;
+;
 
 // The weather display is a simple state machine:
 // 0,..., N/2 - 1: show temperature, humidity
