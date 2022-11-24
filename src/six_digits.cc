@@ -16,12 +16,12 @@
 extern volatile enum modes mode;
 extern volatile enum main_modes main_mode;
 
-#define BAUD_RATE 115200         // old: 9600
-#define CLOCK_QUERY_INTERVAL 100 // seconds
+#define BAUD_RATE 115200        // old: 9600
+#define CLOCK_QUERY_INTERVAL 12 // seconds
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
-// GPIO Pin 4, Port D; PORTB |= B0010000;
-#define TIMER_INTERRUPT_TEST_PIN B0010000
+// GPIO Pin 6, Port D; PORTD |= B01000000;
+#define TIMER_INTERRUPT_TEST_PIN B01000000
 #endif
 
 #define CLOCK_1HZ 2 // D2
@@ -80,26 +80,6 @@ volatile int d3_rhdp;
 volatile int d4_rhdp;
 volatile int d5_rhdp;
 
-#if 0
-// TODO move this if it's useful
-// Isolate all use of printing via Serial to one function
-void print(const char *fmt, ...) {
-    char msg[128];
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(msg, sizeof(msg), fmt, ap); // copies args
-    va_end(ap);
-
-    Serial.print(msg);
-}
-
-#if DEBUG
-#define DPRINT(fmt, ...) print(fmt, __VA_ARGS__)
-#else
-#define DPRINT(fmt, ...)
-#endif
-#endif
-
 /**
  * Print the values of the current digits
  */
@@ -116,29 +96,6 @@ void print_time(DateTime dt, bool print_newline = false) {
     if (print_newline)
         print("\n");
 }
-
-#if 0
-/**
- * Print the current time. Print get_time_duration if it is not zero
- * @param get_time_duration How long did the last get_time transaction take?
- */
-void display_monitor_info(DateTime dt, uint32_t get_time_duration = 0) {
-    static unsigned int n = 0;
-#if 0
-    Serial.print("Display: ");
-    Serial.print(n++);
-    Serial.print(", ");
-#endif
-    print(F("Display: %d, "), n++);
-
-    if (get_time_duration != 0) {
-        print_time(dt, false);
-        print(F(", I2C time query: %ld uS\n"), get_time_duration);
-    } else {
-        print_time(dt, true);
-    }
-}
-#endif
 
 // time - enables advancing time without I2C use. This
 // is global so the value set in setup() will be available
@@ -208,12 +165,28 @@ void blank_dp() {
 
 // Set HIGH when the 1 second interrupt been triggered by the clock
 volatile byte tick = LOW;
+volatile bool get_time = false;
+volatile bool update_display = false;
 
 /**
  * @brief Record that one second has elapsed
  */
 void timer_1HZ_tick_ISR() {
+    static int tick_count = 0;
+
     tick = HIGH;
+    tick_count++;
+
+    if (tick_count >= CLOCK_QUERY_INTERVAL) {
+        // update time using I2C access to the clock
+        tick_count = 0;
+        get_time = true;
+    } else {
+        TimeSpan ts(1); // a one-second time span
+        dt = dt + ts;   // Advance 'dt' by one second
+    }
+
+    update_display = true;
 }
 
 /**
@@ -231,8 +204,12 @@ void timer_1HZ_tick_ISR() {
  */
 int brightness = 0;
 
-int brightness_count[] = {224, 199, 174, 149, 24}; // 900us, ..., 100us
-int blanking_count[] = {24, 49, 74, 99, 224};       // 100us, ..., 900us
+int brightness_count[] = {231, 179, 128, 76, 24}; // ~900us, ..., 100us
+int blanking_count[] = {24, 76, 127, 179, 231};   // 100us, ..., 900us
+
+volatile long avg_display_time = 0;
+volatile long avg_blanking_time = 0;
+volatile long start = 0;
 
 /**
  * @brief The display multiplexing code. A simple state-machine
@@ -245,6 +222,11 @@ ISR(TIMER2_COMPA_vect) {
 
     // If the current state is blanking, stop blanking and enter digit display state
     if (blanking) {
+#if TIMER_INTERRUPT_DIAGNOSTIC_2
+        avg_blanking_time += micros() - start;
+        avg_blanking_time = avg_blanking_time >> 1;
+        start = micros();
+#endif
         switch (digit) {
         case 0:
             //  Set the BCD value on A0-A3. Preserve the values of A4-A7
@@ -328,6 +310,11 @@ ISR(TIMER2_COMPA_vect) {
         // Set the timer to illuminate the digit (e.g., for 900uS)
         OCR2A = brightness_count[brightness];
     } else {
+#if TIMER_INTERRUPT_DIAGNOSTIC_2
+        avg_display_time += micros() - start;
+        avg_display_time = avg_display_time >> 1;
+        start = micros();
+#endif
         // blank_display
         PORTB &= B00000000;
         PORTD &= ~RHDP; // B01111111;
@@ -338,6 +325,8 @@ ISR(TIMER2_COMPA_vect) {
         // Set the timer to blank for, e.g., 100uS. See above
         OCR2A = blanking_count[brightness];
     }
+
+    TCNT2 = 0;
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD &= ~TIMER_INTERRUPT_TEST_PIN;
@@ -370,17 +359,10 @@ void setup() {
 
     if (baro.begin()) {
         print(F("MPL3115A2 Start\n"));
-    }
-    else{
+    } else {
         print(F("Couldn't setup MPL3115A2\n"));
         // TODO Set error flag
     }
-
-#if USE_DHT
-    // Temperature and humidity sensor
-    dht.begin();
-    initialize_DHT_values();
-#endif
 
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
@@ -415,10 +397,6 @@ void setup() {
 
     dt = rtc.now();
     print_time(dt, true);
-
-#if USE_DHT
-    test_dht_22();
-#endif
 
     test_MPL3115A2();
 
@@ -483,6 +461,7 @@ void setup() {
 }
 
 void main_mode_handler() {
+#if 0
     static int tick_count = 0;
     bool get_time = false;
     bool update_display = false;
@@ -504,14 +483,21 @@ void main_mode_handler() {
         update_display = true;
     }
     sei(); // interrupts back on
+#endif
 
     if (get_time) {
         get_time = false;
         dt = rtc.now(); // This call takes about 1ms
-
         update_display_using_mode();
+#if TIMER_INTERRUPT_DIAGNOSTIC_2
+        DPRINTV("Get time; Avg Display %ld, Avg Blanking %ld\n", avg_display_time, avg_blanking_time);
+#endif
     } else if (update_display) {
         update_display_using_mode(); // true == adv time by 1s
+#if TIMER_INTERRUPT_DIAGNOSTIC_2
+        DPRINTV("Avg Display %ld, Avg Blanking %ld\n", avg_display_time, avg_blanking_time);
+#endif
+        update_display = false;
     }
 }
 
