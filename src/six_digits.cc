@@ -214,7 +214,8 @@ volatile long start = 0;
 /**
  * @brief The display multiplexing code. A simple state-machine
  */
-ISR(TIMER2_COMPA_vect) {
+// TIMER2_COMPA_vect
+ISR(TIMER1_COMPA_vect) {
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD |= TIMER_INTERRUPT_TEST_PIN;
@@ -222,10 +223,8 @@ ISR(TIMER2_COMPA_vect) {
 
     // If the current state is blanking, stop blanking and enter digit display state
     if (blanking) {
-#if TIMER_INTERRUPT_DIAGNOSTIC_2
-        avg_blanking_time += micros() - start;
-        avg_blanking_time = avg_blanking_time >> 1;
-        start = micros();
+#if TIMER_INTERRUPT_DIAGNOSTIC
+        PORTD |= _BV(PORTD6);
 #endif
         switch (digit) {
         case 0:
@@ -308,12 +307,14 @@ ISR(TIMER2_COMPA_vect) {
         blanking = false;
 
         // Set the timer to illuminate the digit (e.g., for 900uS)
+#if TIMER_2
         OCR2A = brightness_count[brightness];
+#else
+        OCR1A = brightness_count[brightness];
+#endif
     } else {
-#if TIMER_INTERRUPT_DIAGNOSTIC_2
-        avg_display_time += micros() - start;
-        avg_display_time = avg_display_time >> 1;
-        start = micros();
+#if TIMER_INTERRUPT_DIAGNOSTIC
+        PORTD &= ~_BV(PORTD6);
 #endif
         // blank_display
         PORTB &= B00000000;
@@ -323,10 +324,17 @@ ISR(TIMER2_COMPA_vect) {
         blanking = true;
 
         // Set the timer to blank for, e.g., 100uS. See above
+#if TIMER_2
         OCR2A = blanking_count[brightness];
+#else
+        OCR1A = blanking_count[brightness];
+#endif
     }
 
+#if TIMER_2
     TCNT2 = 0;
+#else
+#endif
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD &= ~TIMER_INTERRUPT_TEST_PIN;
@@ -341,7 +349,7 @@ void setup() {
     // Initialize all I/O pins to output, then set up the inputs/interrupts
     DDRD = B11111111; // D0 - D7
     DDRC = B00111111; // A0 - A5, bit 6 is RST, 7 is undefined
-    DDRB = B00111111; // D8 - D13, bits 6,7 are for the crystall
+    DDRB = B00111111;  // D8 - D13, bits 6,7 are for the crystal
 
     // Initialize all GPIO pins to LOW
     PORTD = B00000000;
@@ -441,7 +449,7 @@ void setup() {
     attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
     // Set up timer 2 - controls the display multiplexing
-
+#if TIMER_2
     // set timer2 interrupt at 950uS. Toggles between 950 and 50 uS
     TCCR2A = 0; // set entire TCCR2A register to 0
     TCCR2B = 0; // same for TCCR0B
@@ -456,8 +464,25 @@ void setup() {
     TCCR2B |= (1 << CS22);
     // enable timer compare interrupt
     TIMSK2 |= (1 << OCIE2A);
+#else
+    // Timer 1
+    // CS1 2:0 Set the pre-scaler; 0, 1 1 (3) for clk/64 pre-scaler
+    // WGM1 3:0; 0, 1, 0, 0 (4) for CTC (clear timer on compare match), counts to OCR1A
+    // TIMSK1 OCIE1A (output compare A match Interrupt enable)
+    // OCR1A (output compare register)
+    //
+    // TCCR1A: COM1A1; COM1A0; COM1B1; COM1B0; R; R; WGM11; WGM10
+    // TCCR1B: ICNC1; ICES1; R; WGM13; WGM12; CS12; CS11; CS10
+    TCCR1B |= _BV(WGM12) | _BV(CS11) | _BV(CS10);
+    // TCCR1C: Only used for input capture mode
+    // TIMSK1: R; R; ICIE1; R; R; OCIE1B, OCIE1A, TOIE1
+    TIMSK1 |= _BV(OCIE1A);
 
-    sei(); // start interrupts
+    // See data sheet pg.122 for info about setting the 16-bit registers
+    OCR1A = 224;
+#endif
+
+    sei();  // start interrupts
 }
 
 void main_mode_handler() {
