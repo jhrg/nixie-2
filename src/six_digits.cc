@@ -79,17 +79,21 @@ volatile int d5_rhdp;
  * Print the values of the current digits
  */
 void print_digits(bool newline) {
+#if DEBUG
     print("%01d-%01d-%01d-%01d-%01d-%01d\n", digit_5, digit_4, digit_3, digit_2, digit_1, digit_0);
+#endif
 }
 
 /**
  * Print the current time, formatted
  */
 void print_time(DateTime dt, bool print_newline = false) {
+#if DEBUG
     // or Serial.println(now.toString(buffer));, buffer == YY/MM/DD hh:mm:ss
     print("%02d/%02d/%02d %02d:%02d:%02d", dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second());
     if (print_newline)
         print("\n");
+#endif
 }
 
 // time - enables advancing time without I2C use. This
@@ -199,8 +203,8 @@ void timer_1HZ_tick_ISR() {
  */
 int brightness = 0;
 
-int brightness_count[] = {231, 179, 128, 76, 24}; // ~900us, ..., 100us
-int blanking_count[] = {24, 76, 127, 179, 231};   // 100us, ..., 900us
+int brightness_count[] = {231, 179, 128, 76, 24, 2};    // ~900us, ...
+int blanking_count[] = {24, 76, 127, 179, 231, 253};    // 100us, ...
 
 volatile long avg_display_time = 0;
 volatile long avg_blanking_time = 0;
@@ -212,7 +216,7 @@ volatile long start = 0;
 ISR(TIMER1_COMPA_vect) {
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
 #if TIMER_INTERRUPT_DIAGNOSTIC
-    PORTD |= PORTD3;
+    PORTD |= _BV(PORTD3);
 #endif
 
     // If the current state is blanking, stop blanking and enter digit display state
@@ -318,19 +322,21 @@ ISR(TIMER1_COMPA_vect) {
     }
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
-    PORTD &= ~PORTD3;
+    PORTD &= ~_BV(PORTD3);
 #endif
 }
 
 void setup() {
-    // Enable some minor, chatty, messages on the serial line.
+// Enable some minor, chatty, messages on the serial line.
+#if DEBUG
     Serial.begin(BAUD_RATE);
-    Serial.println("boot");
+#endif
+    DPRINT("boot\n");
 
     // Initialize all I/O pins to output, then set up the inputs/interrupts
     DDRD = B11111111; // D0 - D7
     DDRC = B00111111; // A0 - A5, bit 6 is RST, 7 is undefined
-    DDRB = B00111111;  // D8 - D13, bits 6,7 are for the crystal
+    DDRB = B00111111; // D8 - D13, bits 6,7 are for the crystal
 
     // Initialize all GPIO pins to LOW
     PORTD = B00000000;
@@ -340,16 +346,16 @@ void setup() {
     Wire.begin();
 
     if (rtc.begin()) {
-        print(F("DS3131 RTC Start\n"));
+        DPRINT("DS3131 RTC Start\n");
     } else {
-        print(F("Couldn't find RTC"));
+        DPRINT("Couldn't find RTC\n");
         // TODO Set error flag
     }
 
     if (baro.begin()) {
-        print(F("MPL3115A2 Start\n"));
+        DPRINT("MPL3115A2 Start\n");
     } else {
-        print(F("Couldn't setup MPL3115A2\n"));
+        DPRINT("Couldn't setup MPL3115A2\n");
         // TODO Set error flag
     }
 
@@ -443,9 +449,9 @@ void setup() {
     TIMSK1 |= _BV(OCIE1A);
 
     // See data sheet pg.122 for info about setting the 16-bit registers
-    OCR1A = 224;
+    OCR1A = brightness_count[0];
 
-    sei();  // start interrupts
+    sei(); // start interrupts
 }
 
 void main_mode_handler() {
