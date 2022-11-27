@@ -19,11 +19,6 @@ extern volatile enum main_modes main_mode;
 #define BAUD_RATE 115200        // old: 9600
 #define CLOCK_QUERY_INTERVAL 12 // seconds
 
-#if TIMER_INTERRUPT_DIAGNOSTIC
-// GPIO Pin 6, Port D; PORTD |= B01000000;
-#define TIMER_INTERRUPT_TEST_PIN B01000000
-#endif
-
 #define CLOCK_1HZ 2 // D2
 
 // This is PORTC (bits 0 to 3; 4 & 5 are for the I2C bus)
@@ -214,11 +209,10 @@ volatile long start = 0;
 /**
  * @brief The display multiplexing code. A simple state-machine
  */
-// TIMER2_COMPA_vect
 ISR(TIMER1_COMPA_vect) {
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
 #if TIMER_INTERRUPT_DIAGNOSTIC
-    PORTD |= TIMER_INTERRUPT_TEST_PIN;
+    PORTD |= PORTD3;
 #endif
 
     // If the current state is blanking, stop blanking and enter digit display state
@@ -307,11 +301,7 @@ ISR(TIMER1_COMPA_vect) {
         blanking = false;
 
         // Set the timer to illuminate the digit (e.g., for 900uS)
-#if TIMER_2
-        OCR2A = brightness_count[brightness];
-#else
         OCR1A = brightness_count[brightness];
-#endif
     } else {
 #if TIMER_INTERRUPT_DIAGNOSTIC
         PORTD &= ~_BV(PORTD6);
@@ -324,20 +314,11 @@ ISR(TIMER1_COMPA_vect) {
         blanking = true;
 
         // Set the timer to blank for, e.g., 100uS. See above
-#if TIMER_2
-        OCR2A = blanking_count[brightness];
-#else
         OCR1A = blanking_count[brightness];
-#endif
     }
 
-#if TIMER_2
-    TCNT2 = 0;
-#else
-#endif
-
 #if TIMER_INTERRUPT_DIAGNOSTIC
-    PORTD &= ~TIMER_INTERRUPT_TEST_PIN;
+    PORTD &= ~PORTD3;
 #endif
 }
 
@@ -448,23 +429,6 @@ void setup() {
     pinMode(INPUT_SWITCH, INPUT);
     attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
-    // Set up timer 2 - controls the display multiplexing
-#if TIMER_2
-    // set timer2 interrupt at 950uS. Toggles between 950 and 50 uS
-    TCCR2A = 0; // set entire TCCR2A register to 0
-    TCCR2B = 0; // same for TCCR0B
-    TCNT2 = 0;  // initialize counter value to 0
-
-    // set compare match register for 900uS increments
-    OCR2A = 224; // = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
-
-    // turn on CTC mode
-    TCCR2A |= (1 << WGM21);
-    // Set CS22 bit for 64 pre-scaler --> B00000100
-    TCCR2B |= (1 << CS22);
-    // enable timer compare interrupt
-    TIMSK2 |= (1 << OCIE2A);
-#else
     // Timer 1
     // CS1 2:0 Set the pre-scaler; 0, 1 1 (3) for clk/64 pre-scaler
     // WGM1 3:0; 0, 1, 0, 0 (4) for CTC (clear timer on compare match), counts to OCR1A
@@ -480,49 +444,18 @@ void setup() {
 
     // See data sheet pg.122 for info about setting the 16-bit registers
     OCR1A = 224;
-#endif
 
     sei();  // start interrupts
 }
 
 void main_mode_handler() {
-#if 0
-    static int tick_count = 0;
-    bool get_time = false;
-    bool update_display = false;
-
-    cli(); // Protect 'tick' against update while in use
-    if (tick) {
-        tick = LOW;
-        tick_count++;
-
-        if (tick_count >= CLOCK_QUERY_INTERVAL) {
-            // update time using I2C access to the clock
-            tick_count = 0;
-            get_time = true;
-        } else {
-            TimeSpan ts(1); // a one-second time span
-            dt = dt + ts;   // Advance 'dt' by one second
-        }
-
-        update_display = true;
-    }
-    sei(); // interrupts back on
-#endif
-
     if (get_time) {
         get_time = false;
         dt = rtc.now(); // This call takes about 1ms
         update_display_using_mode();
-#if TIMER_INTERRUPT_DIAGNOSTIC_2
-        DPRINTV("Get time; Avg Display %ld, Avg Blanking %ld\n", avg_display_time, avg_blanking_time);
-#endif
     } else if (update_display) {
-        update_display_using_mode(); // true == adv time by 1s
-#if TIMER_INTERRUPT_DIAGNOSTIC_2
-        DPRINTV("Avg Display %ld, Avg Blanking %ld\n", avg_display_time, avg_blanking_time);
-#endif
         update_display = false;
+        update_display_using_mode(); // true == adv time by 1s
     }
 }
 
@@ -531,7 +464,5 @@ void loop() {
         main_mode_handler();
     } else if (mode == set_date_time) {
         set_date_time_mode_handler();
-    } else {
-        // noo
     }
 }
