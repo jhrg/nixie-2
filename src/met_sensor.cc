@@ -1,10 +1,9 @@
 
 #include <Arduino.h>
 
-#include "DHT_sensor.h"
+#include "met_sensor.h"
 #include "print.h"
 
-DHT_Unified dht(DHTPIN, DHTTYPE);
 Adafruit_MPL3115A2 baro;
 
 extern void print(const char *fmt, ...);
@@ -33,9 +32,9 @@ void test_MPL3115A2() {
     float temperature = baro.getTemperature();
 
     print(F("------------------------------------\n"));
-    print(F("Pressure:    %d hPa\n"), round(pressure));
-    print(F("Altitude:    %d m\n"), round(altitude));
-    print(F("Temperature: %d °C\n"), round(temperature));
+    print(F("Pressure:    %d.%02d hPa\n"), round(pressure), frac(pressure));
+    print(F("Altitude:    %d.%02d m\n"), round(altitude), frac(altitude));
+    print(F("Temperature: %d.%02d °C\n"), round(temperature), frac(temperature));
 }
 
 // for altitude correction: 1 hPa decrease per 30 feet above MS

@@ -9,7 +9,7 @@
 #include <PinChangeInterrupt.h>
 #include <RTClib.h> // https://github.com/adafruit/RTClib
 
-#include "DHT_sensor.h"
+#include "met_sensor.h"
 #include "mode_switch.h"
 #include "print.h"
 
@@ -53,7 +53,6 @@ uint8_t bcd[10] = {
 #define RHDP B10000000 // D7
 
 RTC_DS3231 rtc;
-extern DHT_Unified dht;
 extern Adafruit_MPL3115A2 baro;
 
 // The state machine for the display multiplexing
@@ -96,9 +95,8 @@ void print_time(DateTime dt, bool print_newline = false) {
 #endif
 }
 
-// time - enables advancing time without I2C use. This
-// is global so the value set in setup() will be available
-// initially in the loop().
+// The global value of time - enables advancing time without I2C use. This
+// is global so the value set in setup() will be available initially in the loop().
 //
 // DateTime cannot be 'volatile' given its definition
 DateTime dt;
@@ -162,19 +160,17 @@ void blank_dp() {
     d5_rhdp = 0;
 }
 
-// Set HIGH when the 1 second interrupt been triggered by the clock
-volatile byte tick = LOW;
+// Set HIGH when the 1 second interrupt been triggered by the clock,
+// Used in main_mode_handler()
 volatile bool get_time = false;
 volatile bool update_display = false;
-volatile int tick_count = 0;
 
 /**
  * @brief Record that one second has elapsed
  */
 void timer_1HZ_tick_ISR() {
-    // TODO Remove static int tick_count = 0;
+    static volatile int tick_count = 0;
 
-    tick = HIGH;
     tick_count++;
 
     if (tick_count >= CLOCK_QUERY_INTERVAL) {
@@ -182,12 +178,9 @@ void timer_1HZ_tick_ISR() {
         tick_count = 0;
         get_time = true;
     }
-#if 0
-    else {
-        TimeSpan ts(1); // a one-second time span
-        dt = dt + ts;   // Advance 'dt' by one second
-    }
-#endif
+
+    // when get_time is false, main_mode_handler() adds one second to the global 
+    // time (dt) when update_display is true.
     update_display = true;
 }
 
@@ -208,10 +201,6 @@ int brightness = 0;
 
 int brightness_count[] = {231, 179, 128, 76, 24, 2};    // ~900us, ...
 int blanking_count[] = {24, 76, 127, 179, 231, 253};    // 100us, ...
-
-volatile long avg_display_time = 0;
-volatile long avg_blanking_time = 0;
-volatile long start = 0;
 
 /**
  * @brief The display multiplexing code. A simple state-machine

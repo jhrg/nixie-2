@@ -8,6 +8,11 @@
 void print(const char *fmt, ...);
 void print(const __FlashStringHelper *fmt, ...);
 
+// Print using %02d
+// TODO needs work
+//#define frac(f) (int)((f > 0.0) ? (int(f*100)%100) : round((f+ceil(f))*100.0))
+#define frac(f) (int(f * 100) % 100)
+
 void flush();
 
 // Using F() in this macro reduced RAM use from 67% to 50% in ~1200 LOC
