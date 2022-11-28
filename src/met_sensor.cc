@@ -59,7 +59,8 @@ void update_display_with_weather() {
 
         int LHS = (int)temperature;
         int RHS = (int)((temperature - LHS) * 100.0);
-
+        
+        DPRINTF("Temeperature: ", temperature);
         DPRINTV("LHS: %d\n", LHS);
         DPRINTV("RHS: %d\n", RHS);
 
