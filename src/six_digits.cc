@@ -166,12 +166,13 @@ void blank_dp() {
 volatile byte tick = LOW;
 volatile bool get_time = false;
 volatile bool update_display = false;
+volatile int tick_count = 0;
 
 /**
  * @brief Record that one second has elapsed
  */
 void timer_1HZ_tick_ISR() {
-    static int tick_count = 0;
+    // TODO Remove static int tick_count = 0;
 
     tick = HIGH;
     tick_count++;
@@ -180,11 +181,13 @@ void timer_1HZ_tick_ISR() {
         // update time using I2C access to the clock
         tick_count = 0;
         get_time = true;
-    } else {
+    }
+#if 0
+    else {
         TimeSpan ts(1); // a one-second time span
         dt = dt + ts;   // Advance 'dt' by one second
     }
-
+#endif
     update_display = true;
 }
 
@@ -455,12 +458,15 @@ void setup() {
 }
 
 void main_mode_handler() {
+    static TimeSpan ts(1);  // a one-second time span
+    
     if (get_time) {
         get_time = false;
         dt = rtc.now(); // This call takes about 1ms
         update_display_using_mode();
     } else if (update_display) {
         update_display = false;
+        dt = dt + ts;    // Advance 'dt' by one second
         update_display_using_mode(); // true == adv time by 1s
     }
 }
