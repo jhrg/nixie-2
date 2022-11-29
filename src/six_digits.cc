@@ -204,6 +204,9 @@ int blanking_count[] = {24, 76, 127, 179, 231, 253};    // 100us, ...
 
 /**
  * @brief The display multiplexing code. A simple state-machine
+ *
+ * The state variable blanking describes the current state, so when blanking,
+ * light a digit and make the state non-blanking.
  */
 ISR(TIMER1_COMPA_vect) {
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
@@ -212,6 +215,7 @@ ISR(TIMER1_COMPA_vect) {
 #endif
 
     // If the current state is blanking, stop blanking and enter digit display state
+    // From the scope, when blanking is true, time in this code is 5us
     if (blanking) {
 #if TIMER_INTERRUPT_DIAGNOSTIC
         PORTD |= _BV(PORTD6);
@@ -299,6 +303,7 @@ ISR(TIMER1_COMPA_vect) {
         // Set the timer to illuminate the digit (e.g., for 900uS)
         OCR1A = brightness_count[brightness];
     } else {
+        // Time in this code (when blanking is false) is 2us
 #if TIMER_INTERRUPT_DIAGNOSTIC
         PORTD &= ~_BV(PORTD6);
 #endif
@@ -448,7 +453,7 @@ void setup() {
 
 void main_mode_handler() {
     static TimeSpan ts(1);  // a one-second time span
-    
+
     if (get_time) {
         get_time = false;
         dt = rtc.now(); // This call takes about 1ms
