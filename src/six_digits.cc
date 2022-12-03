@@ -181,7 +181,7 @@ void timer_1HZ_tick_ISR() {
         get_time = true;
     }
 
-    // when get_time is false, main_mode_handler() adds one second to the global 
+    // when get_time is false, main_mode_handler() adds one second to the global
     // time (dt) when update_display is true.
     update_display = true;
 }
@@ -201,8 +201,8 @@ void timer_1HZ_tick_ISR() {
  */
 int brightness = 0;
 
-int brightness_count[] = {231, 179, 128, 76, 24, 2};    // ~900us, ...
-int blanking_count[] = {24, 76, 127, 179, 231, 253};    // 100us, ...
+int brightness_count[] = {231, 179, 128, 76, 24, 2}; // ~900us, ...
+int blanking_count[] = {24, 76, 127, 179, 231, 253}; // 100us, ...
 
 /**
  * @brief The display multiplexing code. A simple state-machine
@@ -350,21 +350,23 @@ void setup() {
         DPRINT("Couldn't find RTC\n");
         // TODO Set error flag
     }
-#if 0
-    if (baro.begin()) {
+
+#if USE_MPL3115A2
+    if (init_mpl3115a2()) {
         DPRINT("MPL3115A2 Start\n");
     } else {
         DPRINT("Couldn't setup MPL3115A2\n");
         // TODO Set error flag
     }
-#endif
-
+#else
     if (init_bme280()) {
         DPRINT("BME280 Start\n");
     } else {
         DPRINT("Couldn't setup BME280\n");
         // TODO Set error flag
     }
+#endif
+
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
     // between the compiled-in times and the set operation.
@@ -399,10 +401,11 @@ void setup() {
     dt = rtc.now();
     print_time(dt, true);
 
-#if 0
+#if USE_MPL3115A2
     test_MPL3115A2();
-#endif
+#else
     test_bme280();
+#endif
 
     // blank the display
     digit_0 = -1;
@@ -464,7 +467,7 @@ void setup() {
 }
 
 void main_mode_handler() {
-    static TimeSpan ts(1);  // a one-second time span
+    static TimeSpan ts(1); // a one-second time span
 
     if (get_time) {
         get_time = false;
@@ -472,7 +475,7 @@ void main_mode_handler() {
         update_display_using_mode();
     } else if (update_display) {
         update_display = false;
-        dt = dt + ts;    // Advance 'dt' by one second
+        dt = dt + ts;                // Advance 'dt' by one second
         update_display_using_mode(); // true == adv time by 1s
     }
 }

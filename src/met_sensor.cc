@@ -4,11 +4,11 @@
 #include "met_sensor.h"
 #include "print.h"
 
-#if 0
+#if USE_MPL3115A2
 Adafruit_MPL3115A2 baro;
+#else
+Adafruit_BME280 bme; // I2C
 #endif
-
-Adafruit_BME280 bme;  // I2C
 
 extern void print_digits(bool newline);
 
@@ -28,6 +28,32 @@ extern volatile int d4_rhdp;
 extern volatile int d5_rhdp;
 
 extern void blank_dp(); // defined in four_digits.cc
+
+#if USE_MPL3115A2
+
+bool init_mpl3115a2() {
+    bool status = baro.begin();
+    // You can also pass in a Wire library object like &Wire2
+    // status = bme.begin(0x76, &Wire2)
+    if (!status) {
+        DPRINT("Could not find a valid MPL3115A2 sensor\n");
+    }
+
+    return status;
+}
+
+void test_MPL3115A2() {
+    float pressure = baro.getPressure();
+    float altitude = baro.getAltitude();
+    float temperature = baro.getTemperature();
+
+    print(F("------------------------------------\n"));
+    print(F("Pressure:    %d.%02d hPa\n"), round(pressure), frac(pressure));
+    print(F("Altitude:    %d.%02d m\n"), round(altitude), frac(altitude));
+    print(F("Temperature: %d.%02d °C\n"), round(temperature), frac(temperature));
+}
+
+#else
 
 bool init_bme280() {
     // default settings
@@ -63,18 +89,7 @@ void test_bme280() {
     Serial.println();
 }
 
-#if 0
-void test_MPL3115A2() {
-    float pressure = baro.getPressure();
-    float altitude = baro.getAltitude();
-    float temperature = baro.getTemperature();
-
-    print(F("------------------------------------\n"));
-    print(F("Pressure:    %d.%02d hPa\n"), round(pressure), frac(pressure));
-    print(F("Altitude:    %d.%02d m\n"), round(altitude), frac(altitude));
-    print(F("Temperature: %d.%02d °C\n"), round(temperature), frac(temperature));
-}
-#endif
+#endif // USE_MPL3115A2
 
 // for altitude correction: 1 hPa decrease per 30 feet above MS
 static float station_msl = 5560.0; // feet; could be a config param
@@ -93,12 +108,17 @@ void update_display_with_weather() {
 
     switch (state) {
     case 0: {
-        float temperature = bme.readTemperature();
+        float temperature;
+#if USE_MPL3115A2
+        temperature = baro.getTemperature();
+#else
+        temperature = bme.readTemperature();
+#endif
         temperature = temperature * 9.0 / 5.0 + 32.0;
 
         int LHS = (int)temperature;
         int RHS = (int)((temperature - LHS) * 100.0);
-        
+
         DPRINTF("Temperature: ", temperature);
         DPRINTV("LHS: %d\n", LHS);
         DPRINTV("RHS: %d\n", RHS);
@@ -120,7 +140,12 @@ void update_display_with_weather() {
     }
 
     case 4: {
-        float pressure = bme.readPressure() / 100.0F;
+        float pressure;
+#if USE_MPL3115A2
+        pressure = baro.getPressure();
+#else
+        pressure = bme.readPressure() / 100.0F;
+#endif
         pressure = (pressure + hPa_station_correction) * inch_Hg_per_hPa;
 
         int LHS = (int)pressure;
@@ -143,7 +168,7 @@ void update_display_with_weather() {
 #endif
         break;
     }
-
+#if !USE_MPL3115A2
     case 8: {
         float humidity = bme.readHumidity();
 
@@ -167,6 +192,7 @@ void update_display_with_weather() {
 #endif
         break;
     }
+#endif
 
     default:
         break;
