@@ -53,7 +53,9 @@ uint8_t bcd[10] = {
 #define RHDP B10000000 // D7
 
 RTC_DS3231 rtc;
+#if 0
 extern Adafruit_MPL3115A2 baro;
+#endif
 
 // The state machine for the display multiplexing
 volatile bool blanking;
@@ -348,14 +350,21 @@ void setup() {
         DPRINT("Couldn't find RTC\n");
         // TODO Set error flag
     }
-
+#if 0
     if (baro.begin()) {
         DPRINT("MPL3115A2 Start\n");
     } else {
         DPRINT("Couldn't setup MPL3115A2\n");
         // TODO Set error flag
     }
+#endif
 
+    if (init_bme280()) {
+        DPRINT("BME280 Start\n");
+    } else {
+        DPRINT("Couldn't setup BME280\n");
+        // TODO Set error flag
+    }
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
     // between the compiled-in times and the set operation.
@@ -390,7 +399,10 @@ void setup() {
     dt = rtc.now();
     print_time(dt, true);
 
+#if 0
     test_MPL3115A2();
+#endif
+    test_bme280();
 
     // blank the display
     digit_0 = -1;
