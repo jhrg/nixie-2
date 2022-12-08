@@ -11,6 +11,7 @@
 
 #include "met_sensor.h"
 #include "mode_switch.h"
+#include "hv_ps.h"
 #include "print.h"
 
 extern volatile enum modes mode;
@@ -415,6 +416,10 @@ void setup() {
     blanking = true;
     digit = 1;
 
+    // Set up Timer2 so the PWN on pin 3 uses 32kHz. Also sets up the PID controller
+    // parameters.
+    hv_ps_setup();
+
     cli(); // stop interrupts
 
     // This is used for the 1Hz pulse from the clock that triggers
@@ -466,6 +471,12 @@ void main_mode_handler() {
 }
 
 void loop() {
+    static uint32_t last_time = 0;
+    if (millis() - last_time > SAMPLE_PERIOD) {
+        last_time = millis();
+        hv_ps_adjust();
+    }
+    
     if (mode == main) {
         main_mode_handler();
     } else if (mode == set_date_time) {

@@ -3,13 +3,12 @@
  * @brief Code for the PID controller for the HV PS
  */
 
-
-
 #include <Arduino.h>
 #include <PID_v1.h>
 
+#include "hv_ps.h"
+
 #define HV_PS_INPUT A0
-#define SAMPLE_PERIOD 10  // ms
 #define SET_POINT 455     // ~ 200v
 
 double input = 80, output = 50, setpoint = SET_POINT;

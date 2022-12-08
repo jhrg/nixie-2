@@ -1,0 +1,3 @@
+[submodule "lib/Arduino-PID-Library"]
+	path = lib/Arduino-PID-Library
+	url = https://github.com/jhrg/Arduino-PID-Library.git
