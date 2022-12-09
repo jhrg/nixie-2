@@ -8,7 +8,7 @@
 
 #include "hv_ps.h"
 
-#define HV_PS_INPUT A0
+#define HV_PS_INPUT A7
 #define SET_POINT 455     // ~ 200v
 
 double input = 80, output = 50, setpoint = SET_POINT;
