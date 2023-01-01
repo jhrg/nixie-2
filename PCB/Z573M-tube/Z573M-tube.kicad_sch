@@ -521,7 +521,7 @@
     (property "Value" "Z57xM" (id 1) (at 166.37 94.6149 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "nixie-footprints:Z57xM-v1" (id 2) (at 148.59 95.25 0)
+    (property "Footprint" "nixie-footprints:Z57xM-v3-HV" (id 2) (at 148.59 95.25 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "" (id 3) (at 148.59 95.25 0)
@@ -577,7 +577,7 @@
       (reference "J2") (unit 1) (value "6-pin-header") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical")
     )
     (path "/5d4c135e-579a-4b9e-b225-7fc16597da71"
-      (reference "V1") (unit 1) (value "Z57xM") (footprint "nixie-footprints:Z57xM-v1")
+      (reference "V1") (unit 1) (value "Z57xM") (footprint "nixie-footprints:Z57xM-v3-HV")
     )
   )
 )
