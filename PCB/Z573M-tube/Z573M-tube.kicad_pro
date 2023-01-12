@@ -346,8 +346,12 @@
     }
   },
   "libraries": {
-    "pinned_footprint_libs": [],
-    "pinned_symbol_libs": []
+    "pinned_footprint_libs": [
+      "nixie-2.1-footprints"
+    ],
+    "pinned_symbol_libs": [
+      "nixie-tube-clock-2.1"
+    ]
   },
   "meta": {
     "filename": "Z573M-tube.kicad_pro",
