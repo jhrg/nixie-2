@@ -414,7 +414,7 @@ void setup() {
     // State machine initial conditions:
     // start up as if the display has cycled once through already
     blanking = true;
-    digit = 1;
+    digit = 1;  // FIXME Should be zero? 1/9/23
 
     // Set up Timer2 so the PWN on pin 3 uses 32kHz. Also sets up the PID controller
     // parameters.

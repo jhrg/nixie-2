@@ -58,5 +58,4 @@ void hv_ps_adjust() {
     PORTD &= ~_BV(PORTD6);
 #endif
     OCR2B = (unsigned char)output;
-    // analogWrite(3, output);
 }
