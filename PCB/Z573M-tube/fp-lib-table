@@ -1,0 +1,5 @@
+(fp_lib_table
+  (lib (name "nixie-footprints")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/nixie-footprints.pretty")(options "")(descr ""))
+  (lib (name "IN_12A")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/LIB_1N-_12A/1N-_12A/KiCad")(options "")(descr ""))
+  (lib (name "SN74141")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/LIB_SN74141/SN74141/KiCad")(options "")(descr ""))
+)
