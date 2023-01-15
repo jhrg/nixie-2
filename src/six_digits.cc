@@ -208,7 +208,7 @@ int blanking_count[] = {24, 76, 127, 179, 231, 253};    // 100us, ...
  * The state variable blanking describes the current state, so when blanking,
  * light a digit and make the state non-blanking.
  */
-ISR(TIMER1_COMPA_vect) {
+ISR(TIMER2_COMPA_vect) {
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD |= _BV(PORTD3);
