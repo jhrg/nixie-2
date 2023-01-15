@@ -41,17 +41,16 @@ uint8_t bcd[10] = {
     B00001000,
     B00001001};
 
-// All of the digits are on PORTB (D8 - D15). This means there
-// can be no SPI bus use.
-#define DIGIT_0 B00000001 // D8
-#define DIGIT_1 B00000010 // D9
-#define DIGIT_2 B00000100 // D10
-#define DIGIT_3 B00001000 // D11
-#define DIGIT_4 B00010000 // D12
-#define DIGIT_5 B00100000 // D13
+// PORTD, the decimal points and digit 0
+#define RHDP B01000000 // D6 (Port D)
+#define DIGIT_0 B10000000 // Pin 7 (Port D)
 
-// PORTD, the decimal points
-#define RHDP B10000000 // D7
+// All of the remaining digits are on PORTB (D8 - D15). 
+#define DIGIT_1 B00000001 // Pin 8 (Port B)
+#define DIGIT_2 B00000010 // Pin 9
+#define DIGIT_3 B00001000 // Pin 11
+#define DIGIT_4 B00010000 // Pin 12
+#define DIGIT_5 B00100000 // Pin 13
 
 RTC_DS3231 rtc;
 extern Adafruit_MPL3115A2 baro;
@@ -231,7 +230,7 @@ ISR(TIMER1_COMPA_vect) {
                 PORTC |= bcd[digit_0];
 
                 // Turn on the digit, The digits are blanked below during the blanking state
-                PORTB |= DIGIT_0;
+                PORTD |= DIGIT_0;
 
                 // Turn on the decimal point(s) if set
                 if (d0_rhdp)
@@ -309,8 +308,8 @@ ISR(TIMER1_COMPA_vect) {
         PORTD &= ~_BV(PORTD6);
 #endif
         // blank_display
-        PORTB &= B00000000;
-        PORTD &= ~RHDP; // B01111111;
+        PORTB &= B11000100;
+        PORTD &= B00111111;
 
         // State is blanking
         blanking = true;
