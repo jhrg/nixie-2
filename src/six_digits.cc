@@ -9,9 +9,9 @@
 #include <PinChangeInterrupt.h>
 #include <RTClib.h> // https://github.com/adafruit/RTClib
 
+#include "hv_ps.h"
 #include "met_sensor.h"
 #include "mode_switch.h"
-#include "hv_ps.h"
 #include "print.h"
 
 extern volatile enum modes mode;
@@ -21,6 +21,12 @@ extern volatile enum main_modes main_mode;
 #define CLOCK_QUERY_INTERVAL 12 // seconds
 
 #define CLOCK_1HZ 2 // D2
+
+// Arduino port to pin mapping
+//
+//  B (digital pin 8 to 13)
+//  C (analog input pins)
+//  D (digital pins 0 to 7)
 
 // This is PORTC (bits 0 to 3; 4 & 5 are for the I2C bus)
 #define BCD_A A0
@@ -41,17 +47,24 @@ uint8_t bcd[10] = {
     B00001000,
     B00001001};
 
-// All of the digits are on PORTB (D8 - D15). This means there
-// can be no SPI bus use.
-#define DIGIT_0 B00000001 // D8
-#define DIGIT_1 B00000010 // D9
-#define DIGIT_2 B00000100 // D10
-#define DIGIT_3 B00001000 // D11
-#define DIGIT_4 B00010000 // D12
-#define DIGIT_5 B00100000 // D13
-
 // PORTD, the decimal points
-#define RHDP B10000000 // D7
+#define RHDP B01000000 // pin 6
+
+// All of the digits are on PORT B except digit 0, which is on port D.
+#define DIGIT_0 B10000000 // PORT D, pin 7
+
+#define DIGIT_1 B00000001 // PORT B, pin 8
+#define DIGIT_2 B00000010 // 9
+// Leave pin 10 open for use as a PWM pin for the HV PS. Timer one has
+// 16-bit resolution for PWN output versus timer 2 which has 8-bit resolution.
+#define DIGIT_3 B00001000 // 11
+#define DIGIT_4 B00010000 // 12
+#define DIGIT_5 B00100000 // 13
+
+// Anding these with ports B anc D will blank the digits and dp without
+// altering other pins' state.
+#define PORTB_BLANKING B00111111
+#define PORTD_BLANKING B11000100
 
 RTC_DS3231 rtc;
 extern Adafruit_MPL3115A2 baro;
@@ -180,7 +193,7 @@ void timer_1HZ_tick_ISR() {
         get_time = true;
     }
 
-    // when get_time is false, main_mode_handler() adds one second to the global 
+    // when get_time is false, main_mode_handler() adds one second to the global
     // time (dt) when update_display is true.
     update_display = true;
 }
@@ -200,8 +213,8 @@ void timer_1HZ_tick_ISR() {
  */
 int brightness = 0;
 
-int brightness_count[] = {231, 179, 128, 76, 24, 2};    // ~900us, ...
-int blanking_count[] = {24, 76, 127, 179, 231, 253};    // 100us, ...
+int brightness_count[] = {231, 179, 128, 76, 24, 2}; // ~900us, ...
+int blanking_count[] = {24, 76, 127, 179, 231, 253}; // 100us, ...
 
 /**
  * @brief The display multiplexing code. A simple state-machine
@@ -219,7 +232,7 @@ ISR(TIMER1_COMPA_vect) {
     // From the scope, when blanking is true, time in this code is 5us
     if (blanking) {
 #if TIMER_INTERRUPT_DIAGNOSTIC
-        PORTD |= _BV(PORTD6);
+        // PORTD |= _BV(PORTD6);
 #endif
         switch (digit) {
         case 0:
@@ -231,7 +244,7 @@ ISR(TIMER1_COMPA_vect) {
                 PORTC |= bcd[digit_0];
 
                 // Turn on the digit, The digits are blanked below during the blanking state
-                PORTB |= DIGIT_0;
+                PORTD |= DIGIT_0;
 
                 // Turn on the decimal point(s) if set
                 if (d0_rhdp)
@@ -261,7 +274,7 @@ ISR(TIMER1_COMPA_vect) {
                     PORTD |= RHDP;
             }
 
-            digit += 1;
+            digit = 1;
             break;
 
         case 3:
@@ -294,7 +307,7 @@ ISR(TIMER1_COMPA_vect) {
                 if (d5_rhdp)
                     PORTD |= RHDP;
             }
-            digit = 0;
+            digit = 1;
             break;
         }
 
@@ -306,11 +319,11 @@ ISR(TIMER1_COMPA_vect) {
     } else {
         // Time in this code (when blanking is false) is 2us
 #if TIMER_INTERRUPT_DIAGNOSTIC
-        PORTD &= ~_BV(PORTD6);
+        // PORTD &= ~_BV(PORTD6);
 #endif
         // blank_display
-        PORTB &= B00000000;
-        PORTD &= ~RHDP; // B01111111;
+        PORTB &= B00111111; // PORTB_BLANKING;
+        PORTD &= B11000100; // PORTD_BLANKING;
 
         // State is blanking
         blanking = true;
@@ -414,7 +427,7 @@ void setup() {
     // State machine initial conditions:
     // start up as if the display has cycled once through already
     blanking = true;
-    digit = 1;  // FIXME Should be zero? 1/9/23
+    digit = 1;
 
     // Set up Timer2 so the PWN on pin 3 uses 32kHz. Also sets up the PID controller
     // parameters.
@@ -457,7 +470,7 @@ void setup() {
 }
 
 void main_mode_handler() {
-    static TimeSpan ts(1);  // a one-second time span
+    static TimeSpan ts(1); // a one-second time span
 
     if (get_time) {
         get_time = false;
@@ -465,7 +478,7 @@ void main_mode_handler() {
         update_display_using_mode();
     } else if (update_display) {
         update_display = false;
-        dt = dt + ts;    // Advance 'dt' by one second
+        dt = dt + ts;                // Advance 'dt' by one second
         update_display_using_mode(); // true == adv time by 1s
     }
 }
@@ -476,7 +489,7 @@ void loop() {
         last_time = millis();
         hv_ps_adjust();
     }
-    
+
     if (mode == main) {
         main_mode_handler();
     } else if (mode == set_date_time) {
