@@ -300,8 +300,13 @@ ISR(TIMER1_COMPA_vect) {
         // State is not blanking
         blanking = false;
 
-        // Set the timer to illuminate the digit (e.g., for 900uS)
+#if TIMER_1_MULTIPLEX
+        // Set the timer to illuminate the digit (e.g., for 1.900uS)
         OCR1A = brightness_count[brightness];
+#else
+        // Set the timer to illuminate the digit (e.g., for 900uS)
+        OCR2A = brightness_count[brightness];
+#endif
     } else {
         // Time in this code (when blanking is false) is 2us
 #if TIMER_INTERRUPT_DIAGNOSTIC
@@ -314,8 +319,13 @@ ISR(TIMER1_COMPA_vect) {
         // State is blanking
         blanking = true;
 
+#if TIMER_1_MULTIPLEX
         // Set the timer to blank for, e.g., 100uS. See above
         OCR1A = blanking_count[brightness];
+#else
+        // Set the timer to illuminate the digit (e.g., for 900uS)
+        OCR2A = brightness_count[brightness];
+#endif
     }
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
@@ -436,6 +446,7 @@ void setup() {
     pinMode(INPUT_SWITCH, INPUT);
     attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
+#if TIMER_1_MULTIPLEX
     // Timer 1
     // CS1 2:0 Set the pre-scaler; 0, 1 1 (3) for clk/64 pre-scaler
     // WGM1 3:0; 0, 1, 0, 0 (4) for CTC (clear timer on compare match), counts to OCR1A
@@ -451,6 +462,24 @@ void setup() {
 
     // See data sheet pg.122 for info about setting the 16-bit registers
     OCR1A = brightness_count[0];
+#else
+    // Set up timer 2 - controls the display multiplexing
+
+    // set timer2 interrupt at 950uS. Toggles between 950 and 50 uS
+    TCCR2A = 0;  // set entire TCCR2A register to 0
+    TCCR2B = 0;  // same for TCCR0B
+    TCNT2 = 0;   // initialize counter value to 0
+
+    // set compare match register for 900uS increments
+    OCR2A = brightness_count[0];  // = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
+
+    // turn on CTC mode
+    TCCR2A |= _BV(WGM21);  // (1 << WGM21)
+    // Set CS22 bit for 64 pre-scaler --> B00000100
+    TCCR2B |= _BV(CS22);  // (1 << CS22)
+    // enable timer compare interrupt
+    TIMSK2 |= _BV(OCIE2A);  // (1 << OCIE2A)
+#endif
 
     sei(); // start interrupts
 }
