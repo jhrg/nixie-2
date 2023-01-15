@@ -34,7 +34,29 @@ void hv_ps_setup() {
 
     // Start out with low voltage
     // OCR2B is Arduino Pin 3
-    OCR2B = 0x010;  // 0-bit resolution --> 0x00 - 0xFF
+    OCR2B = 0x010;  // 8-bit resolution --> 0x00 - 0xFF
+
+#if 0
+// Use Timer1 for the HV PS control signal
+  // Set the timer to Fast PWM. COM1A1:0 --> 1, 0
+  // Set the timer for 10-bit resolution. WGM13:0 --> 0, 1, 1, 1
+  TCCR1A = _BV(COM1A1) | _BV(WGM11) | _BV(WGM10);
+  // Set the pre-scaler at 1 (62.5 kHz) and the two high-order bits of WGM
+  TCCR1B = _BV(WGM12) | _BV(CS10);
+
+  OCR1A = 0x10; // 10-bit resolution --> 0x0000 - 0x03FF
+
+   // Use Timer1 for the HV PS control signal
+  // Set the timer to Fast PWM. COM1A1:0 --> 1, 0
+  // Set the timer for 10-bit resolution. WGM13:0 --> 0, 1, 1, 1
+  // Set the timer for 9-bit resolution. WGM13:0 --> 0, 1, 1, 0
+  TCCR1A = _BV(COM1A1) | _BV(WGM11);
+  // Set the pre-scaler at 1 (62.5 kHz) and the two high-order bits of WGM
+  TCCR1B = _BV(WGM12) | _BV(CS10);
+
+  OCR1A = 0x10; // 10-bit resolution --> 0x0000 - 0x03FF
+
+#endif
 
     input = analogRead(HV_PS_INPUT);
     myPID.SetOutputLimits(10, 150);
