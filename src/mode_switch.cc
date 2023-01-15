@@ -105,7 +105,7 @@ void set_date_time_mode_next() {
         break;
 
     case zero_seconds:
-        set_time_mode = set_day;
+        set_time_mode = set_month;
         blank_dp();
         d5_rhdp = 1;
         d4_rhdp = 1;
