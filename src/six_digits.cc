@@ -464,11 +464,14 @@ void main_mode_handler() {
 }
 
 void loop() {
+#if 0
     static uint32_t last_time = 0;
     if (millis() - last_time > SAMPLE_PERIOD) {
         last_time = millis();
         hv_ps_adjust();
     }
+#endif
+    hv_ps_adjust();
     
     if (mode == main) {
         main_mode_handler();

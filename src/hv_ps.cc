@@ -9,7 +9,9 @@
 #include <PID_v1.h>
 
 #define HV_PS_INPUT A7
-#define SET_POINT 455  // ~ 200v
+#define SAMPLE_PERIOD 10   // ms
+#define SET_POINT 455      // ~ 200v
+#define INITIAL_VALUE 0x8F // 9-bit resolution --> 0x0000 - 0x01FF
 
 double input = 80, output = 50, setpoint = SET_POINT;
 double kp = 0.8, ki = 0.4, kd = 0.0;
@@ -26,9 +28,9 @@ void hv_ps_setup() {
 
     cli();
 
-    TCCR1A = 0;  // set entire TCCR2A register to 0
-    TCCR1B = 0;  // same for TCCR0B
-    TCNT1 = 0;   // initialize counter value to 0
+    TCCR1A = 0; // set entire TCCR2A register to 0
+    TCCR1B = 0; // same for TCCR0B
+    TCNT1 = 0;  // initialize counter value to 0
 
     // Use Timer1 for the HV PS control signal
     // Set the timer to Fast PWM. COM1A1:0 --> 1, 0
@@ -38,16 +40,47 @@ void hv_ps_setup() {
     // Set the pre-scaler at 1 (62.5 kHz) and the two high-order bits of WGM
     TCCR1B = _BV(WGM12) | _BV(CS10);
 
-    OCR1B = 0xFF;  // 9-bit resolution --> 0x0000 - 0x01FF
+    OCR1B = INITIAL_VALUE; // 9-bit resolution --> 0x0000 - 0x01FF
 
     sei();
 
     input = analogRead(HV_PS_INPUT);
     myPID.SetOutputLimits(10, 150);
     myPID.SetSampleTime(SAMPLE_PERIOD);
-    myPID.SetMode(AUTOMATIC);  // This turns on the PID; MANUAL mode turns it off
+    myPID.SetMode(AUTOMATIC); // This turns on the PID; MANUAL mode turns it off
 }
 
+/**
+ * @brief The simplest input reader. Always reads a value
+ */
+bool read_input(double *in) {
+    *in = analogRead(HV_PS_INPUT);
+    return true;
+}
+
+/**
+ * @brief compute on iteration of the PID controller.
+ * The sample period is 10ms. The PID controller will only compute
+ * at that rate, but we can save time by only calling the ADC when the
+ * PID controller needs a new value.
+ */
+void hv_ps_adjust() {
+
+#if PID_DIAGNOSTIC
+    PORTD |= _BV(PORTD6);
+#endif
+
+    myPID.Compute(read_input);
+
+#if PID_DIAGNOSTIC
+    PORTD &= ~_BV(PORTD6);
+#endif
+
+    // OCR1B is Pin 10
+    OCR1B = (unsigned char)output;
+}
+
+#if 0
 /**
  * @brief compute on iteration of the PID controller.
  * The sample period is 10ms. The PID controller will only compute
@@ -69,3 +102,4 @@ void hv_ps_adjust() {
     OCR1B = (unsigned char)output;
 #endif
 }
+#endif
