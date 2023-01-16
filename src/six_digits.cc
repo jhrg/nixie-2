@@ -208,7 +208,7 @@ int blanking_count[] = {24, 76, 127, 179, 231, 253};    // 100us, ...
  * The state variable blanking describes the current state, so when blanking,
  * light a digit and make the state non-blanking.
  */
-ISR(TIMER1_COMPA_vect) {
+ISR(TIMER2_COMPA_vect) {
     // See https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
 #if TIMER_INTERRUPT_DIAGNOSTIC
     PORTD |= _BV(PORTD3);
@@ -217,9 +217,6 @@ ISR(TIMER1_COMPA_vect) {
     // If the current state is blanking, stop blanking and enter digit display state
     // From the scope, when blanking is true, time in this code is 5us
     if (blanking) {
-#if TIMER_INTERRUPT_DIAGNOSTIC
-        PORTD |= _BV(PORTD6);
-#endif
         switch (digit) {
         case 0:
             //  Set the BCD value on A0-A3. Preserve the values of A4-A7
@@ -300,18 +297,9 @@ ISR(TIMER1_COMPA_vect) {
         // State is not blanking
         blanking = false;
 
-#if TIMER_1_MULTIPLEX
-        // Set the timer to illuminate the digit (e.g., for 1.900uS)
-        OCR1A = brightness_count[brightness];
-#else
         // Set the timer to illuminate the digit (e.g., for 900uS)
         OCR2A = brightness_count[brightness];
-#endif
     } else {
-        // Time in this code (when blanking is false) is 2us
-#if TIMER_INTERRUPT_DIAGNOSTIC
-        PORTD &= ~_BV(PORTD6);
-#endif
         // blank_display
         PORTB &= B11000100;
         PORTD &= B00111111;
@@ -319,13 +307,8 @@ ISR(TIMER1_COMPA_vect) {
         // State is blanking
         blanking = true;
 
-#if TIMER_1_MULTIPLEX
         // Set the timer to blank for, e.g., 100uS. See above
-        OCR1A = blanking_count[brightness];
-#else
-        // Set the timer to illuminate the digit (e.g., for 900uS)
-        OCR2A = brightness_count[brightness];
-#endif
+        OCR2A = blanking_count[brightness];
     }
 
 #if TIMER_INTERRUPT_DIAGNOSTIC
@@ -446,23 +429,6 @@ void setup() {
     pinMode(INPUT_SWITCH, INPUT);
     attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
-#if TIMER_1_MULTIPLEX
-    // Timer 1
-    // CS1 2:0 Set the pre-scaler; 0, 1 1 (3) for clk/64 pre-scaler
-    // WGM1 3:0; 0, 1, 0, 0 (4) for CTC (clear timer on compare match), counts to OCR1A
-    // TIMSK1 OCIE1A (output compare A match Interrupt enable)
-    // OCR1A (output compare register)
-    //
-    // TCCR1A: COM1A1; COM1A0; COM1B1; COM1B0; R; R; WGM11; WGM10
-    // TCCR1B: ICNC1; ICES1; R; WGM13; WGM12; CS12; CS11; CS10
-    TCCR1B |= _BV(WGM12) | _BV(CS11) | _BV(CS10);
-    // TCCR1C: Only used for input capture mode
-    // TIMSK1: R; R; ICIE1; R; R; OCIE1B, OCIE1A, TOIE1
-    TIMSK1 |= _BV(OCIE1A);
-
-    // See data sheet pg.122 for info about setting the 16-bit registers
-    OCR1A = brightness_count[0];
-#else
     // Set up timer 2 - controls the display multiplexing
 
     // set timer2 interrupt at 950uS. Toggles between 950 and 50 uS
@@ -479,7 +445,6 @@ void setup() {
     TCCR2B |= _BV(CS22);  // (1 << CS22)
     // enable timer compare interrupt
     TIMSK2 |= _BV(OCIE2A);  // (1 << OCIE2A)
-#endif
 
     sei(); // start interrupts
 }
