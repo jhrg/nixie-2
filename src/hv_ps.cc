@@ -41,7 +41,8 @@ void hv_ps_setup() {
   // Set the timer to Fast PWM. COM1A1:0 --> 1, 0
   // Set the timer for 10-bit resolution. WGM13:0 --> 0, 1, 1, 1
   TCCR1A = _BV(COM1A1) | _BV(WGM11) | _BV(WGM10);
-  // Set the pre-scaler at 1 (62.5 kHz) and the two high-order bits of WGM
+  // Set the pre-scaler at 1 (15.6 kHz) given the 10-bit resolution setting 
+  // for fast PWM. Also set and the #2 bit of WGM.
   TCCR1B = _BV(WGM12) | _BV(CS10);
 
   OCR1A = 0x10; // 10-bit resolution --> 0x0000 - 0x03FF
@@ -51,10 +52,12 @@ void hv_ps_setup() {
   // Set the timer for 10-bit resolution. WGM13:0 --> 0, 1, 1, 1
   // Set the timer for 9-bit resolution. WGM13:0 --> 0, 1, 1, 0
   TCCR1A = _BV(COM1A1) | _BV(WGM11);
-  // Set the pre-scaler at 1 (62.5 kHz) and the two high-order bits of WGM
+  // Set the pre-scaler at 1 (61.19 kHz) given the 9-bit resolution setting
+  // for fast PWM.
   TCCR1B = _BV(WGM12) | _BV(CS10);
 
-  OCR1A = 0x10; // 10-bit resolution --> 0x0000 - 0x03FF
+    // OCR1A is pin 10
+  OCR1A = 0x10; // 9-bit resolution --> 0x0000 - 0x01FF
 
 #endif
 
