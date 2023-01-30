@@ -341,14 +341,14 @@ void setup() {
         DPRINT("Couldn't find RTC\n");
         // TODO Set error flag
     }
-
+#if 0
     if (baro.begin()) {
         DPRINT("MPL3115A2 Start\n");
     } else {
         DPRINT("Couldn't setup MPL3115A2\n");
         // TODO Set error flag
     }
-
+#endif
 #if ADJUST_TIME
     // Run this here, before serial configuration to shorten the delay
     // between the compiled-in times and the set operation.
@@ -383,8 +383,9 @@ void setup() {
     dt = rtc.now();
     print_time(dt, true);
 
+#if 0
     test_MPL3115A2();
-
+#endif
     // blank the display
     digit_0 = -1;
     digit_1 = -1;
