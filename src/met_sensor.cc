@@ -121,7 +121,7 @@ void update_display_with_weather() {
         }
 
         case 8: {
-            float pressure = (bme.readPressure() + hPa_station_correction) * inch_Hg_per_hPa;
+            float pressure = (bme.readPressure() / 100.0F + hPa_station_correction) * inch_Hg_per_hPa;
 
             int LHS = (int)pressure;
             int RHS = (int)((pressure - LHS) * 100.0);
