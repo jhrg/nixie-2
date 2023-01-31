@@ -4,7 +4,7 @@
 #include "met_sensor.h"
 #include "print.h"
 
-Adafruit_BME280 bme;  // I2C
+Adafruit_BME280 bme; // I2C
 
 extern void print(const char *fmt, ...);
 extern void print_digits(bool newline);
@@ -55,7 +55,7 @@ void test_bme280() {
 }
 
 // for altitude correction: 1 hPa decrease per 30 feet above MS
-static float station_msl = 5560.0;  // feet; could be a config param
+static float station_msl = 5560.0; // feet; could be a config param
 static float hPa_station_correction = station_msl / 30.0;
 ;
 
@@ -70,82 +70,91 @@ void update_display_with_weather() {
     DPRINTV("Weather state: %d\n", state);
 
     switch (state) {
-        case 0: {
-            float temperature = bme.readTemperature() * 9.0 / 5.0 + 32.0;
+    case 0: {
+        float temperature = bme.readTemperature() * 9.0 / 5.0 + 32.0;
 
-            int LHS = (int)temperature;
-            int RHS = (int)((temperature - LHS) * 100.0);
+        int LHS = (int)temperature;
+        int RHS = (int)((temperature - LHS) * 100.0);
 
-            DPRINTF("Temperature: ", temperature);
-            DPRINTV("LHS: %d\n", LHS);
-            DPRINTV("RHS: %d\n", RHS);
+        DPRINTF("Temperature: ", temperature);
+        DPRINTV("LHS: %d\n", LHS);
+        DPRINTV("RHS: %d\n", RHS);
 
-            blank_dp();
-            digit_0 = RHS / 10;
-            d1_rhdp = 1;
-            digit_1 = LHS % 10;
-            digit_2 = LHS / 10;
+        blank_dp();
+        digit_0 = RHS / 10;
+        d1_rhdp = 1;
+        digit_1 = LHS % 10;
+        digit_2 = LHS / 10;
 
-            digit_3 = -1;
-            digit_4 = -1;
-            digit_5 = -1;
+        digit_3 = -1;
+        digit_4 = -1;
+        digit_5 = -1;
 
 #if DEBUG
-            print_digits(true);
+        print_digits(true);
 #endif
-            break;
-        }
+        break;
+    }
 
-        case 4: {
-            float humidity = bme.readHumidity();
+    case 4: {
+        float humidity = bme.readHumidity();
 
-            int LHS = (int)humidity;
-            int RHS = (int)((humidity - LHS) * 100.0);
+        int LHS = (int)humidity;
+        int RHS = (int)((humidity - LHS) * 100.0);
 
-            DPRINTV("LHS: %d\n", LHS);
-            DPRINTV("RHS: %d\n", RHS);
+        DPRINTV("LHS: %d\n", LHS);
+        DPRINTV("RHS: %d\n", RHS);
 
-            blank_dp();
-            digit_0 = RHS % 10;
-            digit_1 = RHS / 10;
-            d2_rhdp = 1;
-            digit_2 = LHS % 10;
-            digit_3 = LHS / 10;
+        blank_dp();
 
-            digit_4 = -1;
-            digit_5 = -1;
+#if 0
+        digit_0 = RHS % 10;
+        digit_1 = RHS / 10;
+        d2_rhdp = 1;
+        digit_2 = LHS % 10;
+        digit_3 = LHS / 10;
+#endif
+
+        digit_0 = RHS / 10;
+        d1_rhdp = 1;
+        digit_1 = LHS % 10;
+        digit_2 = LHS / 10;
+
+        digit_3 = -1;
+        digit_4 = -1;
+        digit_5 = -1;
 #if DEBUG
-            print_digits(true);
+        print_digits(true);
 #endif
-            break;
-        }
+        break;
+    }
 
-        case 8: {
-            float pressure = (bme.readPressure() / 100.0F + hPa_station_correction) * inch_Hg_per_hPa;
+    case 8: {
+        float pressure = (bme.readPressure() / 100.0F + hPa_station_correction) * inch_Hg_per_hPa;
 
-            int LHS = (int)pressure;
-            int RHS = (int)((pressure - LHS) * 100.0);
+        int LHS = (int)pressure;
+        int RHS = (int)((pressure - LHS) * 100.0);
 
-            DPRINTV("LHS: %d\n", LHS);
-            DPRINTV("RHS: %d\n", RHS);
+        DPRINTV("LHS: %d\n", LHS);
+        DPRINTV("RHS: %d\n", RHS);
 
-            blank_dp();
-            digit_0 = RHS % 10;
-            digit_1 = RHS / 10;
-            d2_rhdp = 1;
-            digit_2 = LHS % 10;
-            digit_3 = LHS / 10;
+        blank_dp();
+        digit_0 = RHS % 10;
+        digit_1 = RHS / 10;
+        d2_rhdp = 1;
+        digit_2 = LHS % 10;
+        digit_3 = LHS / 10;
 
-            digit_4 = -1;
-            digit_5 = -1;
+        digit_4 = -1;
+        digit_5 = -1;
 #if DEBUG
-            print_digits(true);
+        print_digits(true);
 #endif
-            break;
-        }
+        break;
+    }
 
-        default:
-            break;
+    default:
+        break;
     }
 
     state += 1;
