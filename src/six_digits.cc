@@ -6,20 +6,21 @@
 
 #include <Arduino.h>
 #include <PinChangeInterrupt.h>
-#include <RTClib.h>  // https://github.com/adafruit/RTClib
+#include <RTClib.h> // https://github.com/adafruit/RTClib
 
 #include "hv_ps.h"
 #include "met_sensor.h"
 #include "mode_switch.h"
+#include "ambient_light.h"
 #include "print.h"
 
 extern volatile enum modes mode;
 extern volatile enum main_modes main_mode;
 
-#define BAUD_RATE 115200         // old: 9600
-#define CLOCK_QUERY_INTERVAL 12  // seconds
+#define BAUD_RATE 115200        // old: 9600
+#define CLOCK_QUERY_INTERVAL 12 // seconds
 
-#define CLOCK_1HZ 2  // D2
+#define CLOCK_1HZ 2 // D2
 
 // This is PORTC (bits 0 to 3; 4 & 5 are for the I2C bus)
 #define BCD_A A0
@@ -41,15 +42,15 @@ uint8_t bcd[10] = {
     B00001001};
 
 // PORTD, the decimal points and digit 0
-#define RHDP B01000000     // D6 (Port D)
-#define DIGIT_0 B10000000  // Pin 7 (Port D)
+#define RHDP B01000000    // D6 (Port D)
+#define DIGIT_0 B10000000 // Pin 7 (Port D)
 
 // All of the remaining digits are on PORTB (D8 - D15).
-#define DIGIT_1 B00000001  // Pin 8 (Port B)
-#define DIGIT_2 B00000010  // Pin 9
-#define DIGIT_3 B00001000  // Pin 11
-#define DIGIT_4 B00010000  // Pin 12
-#define DIGIT_5 B00100000  // Pin 13
+#define DIGIT_1 B00000001 // Pin 8 (Port B)
+#define DIGIT_2 B00000010 // Pin 9
+#define DIGIT_3 B00001000 // Pin 11
+#define DIGIT_4 B00010000 // Pin 12
+#define DIGIT_5 B00100000 // Pin 13
 
 RTC_DS3231 rtc;
 extern Adafruit_BME280 bme;
@@ -124,29 +125,29 @@ void update_display_with_date() {
 }
 
 void update_display_using_mode() {
-    static bool blinker = false;  // blink dp for date
+    static bool blinker = false; // blink dp for date
 
     switch (main_mode) {
-        case show_time:
-            update_display_with_time();
-            break;
+    case show_time:
+        update_display_with_time();
+        break;
 
-        case show_date:
-            blinker = !blinker;
-            d0_rhdp = blinker ? 1 : 0;
-            update_display_with_date();
+    case show_date:
+        blinker = !blinker;
+        d0_rhdp = blinker ? 1 : 0;
+        update_display_with_date();
 #if DEBUG
-            print_digits(true);
+        print_digits(true);
 #endif
-            break;
+        break;
 
-        case show_weather: {
-            update_display_with_weather();
-            break;
-        }
+    case show_weather: {
+        update_display_with_weather();
+        break;
+    }
 
-        default:
-            break;
+    default:
+        break;
     }
 }
 
@@ -186,20 +187,20 @@ void timer_1HZ_tick_ISR() {
 /**
  * Set brightness by varying the digit on and off time.
  *
- * 900us, 800, 700, 600, 500 with the off time being 100us, 200, ..., 500us
+ * 900us, ..., 0+ with the off time being 100us, ..., 1000us
  * With the pre-scalar at 64, a count of 0 is 4uS, 1 is 8uS, ...,
  * For example: 224 = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
  *
- * There are five brightness levels 1-5 and the counter values for the on and
- * off times are precomputed and used via the defines below. The brightness
+ * There are six brightness levels 0-5 and the counter values for the on and
+ * off times are precomputed and used via the arrays below. The brightness
  * level is held in the following global that can be set by the input button
- * (see set_mode.cc). The default/initial value is 1 which is the brightest
+ * (see set_mode.cc). The default/initial value is 0 which is the brightest
  * level.
  */
 int brightness = 0;
 
-int brightness_count[] = {231, 179, 128, 76, 24, 2};  // ~900us, ...
-int blanking_count[] = {24, 76, 127, 179, 231, 253};  // 100us, ...
+int brightness_count[] = {231, 179, 128, 76, 24, 10}; // ~900us, ...
+int blanking_count[] = {24, 76, 127, 179, 231, 245}; // 100us, ...
 
 /**
  * @brief The display multiplexing code. A simple state-machine
@@ -217,80 +218,80 @@ ISR(TIMER2_COMPA_vect) {
     // From the scope, when blanking is true, time in this code is 5us
     if (blanking) {
         switch (digit) {
-            case 0:
-                //  Set the BCD value on A0-A3. Preserve the values of A4-A7
-                PORTC &= B11110000;
+        case 0:
+            //  Set the BCD value on A0-A3. Preserve the values of A4-A7
+            PORTC &= B11110000;
 
-                // use a digit value of -1 for blanking
-                if (digit_0 > -1) {
-                    PORTC |= bcd[digit_0];
+            // use a digit value of -1 for blanking
+            if (digit_0 > -1) {
+                PORTC |= bcd[digit_0];
 
-                    // Turn on the digit, The digits are blanked below during the blanking state
-                    PORTD |= DIGIT_0;
+                // Turn on the digit, The digits are blanked below during the blanking state
+                PORTD |= DIGIT_0;
 
-                    // Turn on the decimal point(s) if set
-                    if (d0_rhdp)
-                        PORTD |= RHDP;
-                }
-                // move the state to the next digit
-                digit += 1;
-                break;
+                // Turn on the decimal point(s) if set
+                if (d0_rhdp)
+                    PORTD |= RHDP;
+            }
+            // move the state to the next digit
+            digit += 1;
+            break;
 
-            case 1:
-                PORTC &= B11110000;
-                if (digit_1 > -1) {
-                    PORTC |= bcd[digit_1];
-                    PORTB |= DIGIT_1;
-                    if (d1_rhdp)
-                        PORTD |= RHDP;
-                }
-                digit += 1;
-                break;
+        case 1:
+            PORTC &= B11110000;
+            if (digit_1 > -1) {
+                PORTC |= bcd[digit_1];
+                PORTB |= DIGIT_1;
+                if (d1_rhdp)
+                    PORTD |= RHDP;
+            }
+            digit += 1;
+            break;
 
-            case 2:
-                PORTC &= B11110000;
-                if (digit_2 > -1) {
-                    PORTC |= bcd[digit_2];
-                    PORTB |= DIGIT_2;
-                    if (d2_rhdp)
-                        PORTD |= RHDP;
-                }
+        case 2:
+            PORTC &= B11110000;
+            if (digit_2 > -1) {
+                PORTC |= bcd[digit_2];
+                PORTB |= DIGIT_2;
+                if (d2_rhdp)
+                    PORTD |= RHDP;
+            }
 
-                digit += 1;
-                break;
+            digit += 1;
+            break;
 
-            case 3:
-                PORTC &= B11110000;
-                if (digit_3 > -1) {
-                    PORTC |= bcd[digit_3];
-                    PORTB |= DIGIT_3;
-                    if (d3_rhdp)
-                        PORTD |= RHDP;
-                }
-                digit += 1;
-                break;
+        case 3:
+            PORTC &= B11110000;
+            if (digit_3 > -1) {
+                PORTC |= bcd[digit_3];
+                PORTB |= DIGIT_3;
+                if (d3_rhdp)
+                    PORTD |= RHDP;
+            }
+            digit += 1;
+            break;
 
-            case 4:
-                PORTC &= B11110000;
-                if (digit_4 > -1) {
-                    PORTC |= bcd[digit_4];
-                    PORTB |= DIGIT_4;
-                    if (d4_rhdp)
-                        PORTD |= RHDP;
-                }
-                digit += 1;
-                break;
+        case 4:
+            PORTC &= B11110000;
+            if (digit_4 > -1) {
+                PORTC |= bcd[digit_4];
+                PORTB |= DIGIT_4;
+                if (d4_rhdp)
+                    PORTD |= RHDP;
+            }
+            digit += 1;
+            break;
 
-            case 5:
-                PORTC &= B11110000;
-                if (digit_5 > -1) {
-                    PORTC |= bcd[digit_5];
-                    PORTB |= DIGIT_5;
-                    if (d5_rhdp)
-                        PORTD |= RHDP;
-                }
-                digit = 0;
-                break;
+        case 5:
+            PORTC &= B11110000;
+            if (digit_5 > -1) {
+                PORTC |= bcd[digit_5];
+                PORTB |= DIGIT_5;
+                if (d5_rhdp)
+                    PORTD |= RHDP;
+            }
+            digit = 0;
+            break;
         }
 
         // State is not blanking
@@ -323,9 +324,9 @@ void setup() {
     DPRINT("boot\n");
 
     // Initialize all I/O pins to output, then set up the inputs/interrupts
-    DDRD = B11111111;  // D0 - D7
-    DDRC = B00111111;  // A0 - A5, bit 6 is RST, 7 is undefined
-    DDRB = B00111111;  // D8 - D13, bits 6,7 are for the crystal
+    DDRD = B11111111; // D0 - D7
+    DDRC = B00111111; // A0 - A5, bit 6 is RST, 7 is undefined
+    DDRB = B00111111; // D8 - D13, bits 6,7 are for the crystal
 
     // Initialize all GPIO pins to LOW
     PORTD = B00000000;
@@ -403,13 +404,15 @@ void setup() {
     // State machine initial conditions:
     // start up as if the display has cycled once through already
     blanking = true;
-    digit = 0;  // FIXME Should be zero? 1/9/23
+    digit = 0; // FIXME Should be zero? 1/9/23
+
+    ambient_light_setup();
 
     // Set up Timer2 so the PWN on pin 3 uses 32kHz. Also sets up the PID controller
     // parameters.
     hv_ps_setup();
 
-    cli();  // stop interrupts
+    cli(); // stop interrupts
 
     // This is used for the 1Hz pulse from the clock that triggers
     // time updates.
@@ -429,34 +432,35 @@ void setup() {
     // Set up timer 2 - controls the display multiplexing
 
     // set timer2 interrupt at 950uS. Toggles between 950 and 50 uS
-    TCCR2A = 0;  // set entire TCCR2A register to 0
-    TCCR2B = 0;  // same for TCCR0B
-    TCNT2 = 0;   // initialize counter value to 0
+    TCCR2A = 0; // set entire TCCR2A register to 0
+    TCCR2B = 0; // same for TCCR0B
+    TCNT2 = 0;  // initialize counter value to 0
 
     // set compare match register for 900uS increments
-    OCR2A = brightness_count[0];  // = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
+    OCR2A = brightness_count[0]; // = [(16*10^6 / 64 ) * 0.000 900] - 1; (must be <256)
 
     // turn on CTC mode
-    TCCR2A |= _BV(WGM21);  // (1 << WGM21)
+    TCCR2A |= _BV(WGM21); // (1 << WGM21)
     // Set CS22 bit for 64 pre-scaler --> B00000100
-    TCCR2B |= _BV(CS22);  // (1 << CS22)
+    TCCR2B |= _BV(CS22); // (1 << CS22)
     // enable timer compare interrupt
-    TIMSK2 |= _BV(OCIE2A);  // (1 << OCIE2A)
+    TIMSK2 |= _BV(OCIE2A); // (1 << OCIE2A)
 
-    sei();  // start interrupts
+    sei(); // start interrupts
 }
 
 void main_mode_handler() {
-    static TimeSpan ts(1);  // a one-second time span
+    static TimeSpan ts(1); // a one-second time span
 
     if (get_time) {
         get_time = false;
-        dt = rtc.now();  // This call takes about 1ms
+        dt = rtc.now(); // This call takes about 1ms
         update_display_using_mode();
+        ambeint_light_adjust();
     } else if (update_display) {
         update_display = false;
-        dt = dt + ts;                 // Advance 'dt' by one second
-        update_display_using_mode();  // true == adv time by 1s
+        dt = dt + ts;                // Advance 'dt' by one second
+        update_display_using_mode(); // true == adv time by 1s
     }
 }
 
