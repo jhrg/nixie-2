@@ -45,7 +45,7 @@ void hv_ps_setup() {
     sei();
 
     input = analogRead(HV_PS_INPUT);
-    myPID.SetOutputLimits(10, 150);
+    myPID.SetOutputLimits(10, 200);
     myPID.SetSampleTime(SAMPLE_PERIOD);
     myPID.SetMode(AUTOMATIC); // This turns on the PID; MANUAL mode turns it off
 }

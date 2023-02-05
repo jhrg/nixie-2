@@ -22,7 +22,5 @@ void ambeint_light_adjust() {
     // always between 0 and BRIGHTNESS_LEN.
     brightness  = BRIGHTNESS_LEN - ceil(BRIGHTNESS_LEN * light/1024.0);
 
-#if DEBUG
-    print("light: %d, brightness: %d\n", (int)light, brightness);
-#endif
+    DPRINTV("light: %d, brightness: %d\n", (int)light, brightness);
 }
