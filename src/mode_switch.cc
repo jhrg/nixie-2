@@ -40,11 +40,42 @@ extern volatile int d3_rhdp;
 extern volatile int d4_rhdp;
 extern volatile int d5_rhdp;
 
+// These control the brightness of the three digit pairs so that the pair being
+// set is bright and the other two are dim.
+extern volatile bool pair_0;
+extern volatile bool pair_1;
+extern volatile bool pair_2;
+
 extern DateTime dt; // This is clock's time, updated when set-time mode is exited
 DateTime new_dt;    // initialized to 'dt' when set_time mode is entered
 extern RTC_DS3231 rtc;
 
+/**
+ * These three select one of the three pairs of digits so they can be highlighted,
+ * flashed, etc., while the clock's time, date, etc., is being set.
+ */
+void set_pair_2() {
+    pair_2 = true;
+    pair_0 = pair_1 = false;
+}
+void set_pair_1() {
+    pair_1 = true;
+    pair_0 = pair_2 = false;
+}
+void set_pair_0() {
+    pair_0 = true;
+    pair_2 = pair_2 = false;
+}
+void set_pair_all() {
+    pair_0 = pair_1 = pair_2 = true;
+}
+
+/**
+ * Cycle the main modes
+ */
 void main_mode_next() {
+    cli();
+
     switch (main_mode) {
     case show_time:
         main_mode = show_date;
@@ -61,6 +92,8 @@ void main_mode_next() {
     default:
         break;
     }
+
+    sei();
 }
 
 /**
@@ -68,12 +101,15 @@ void main_mode_next() {
  * @note the order is month -> day -> year -> hour -> min -> zero seconds
  */
 void set_date_time_mode_next() {
+    cli(); 
+
     switch (set_time_mode) {
     case set_month:
         set_time_mode = set_day;
         blank_dp();
         d3_rhdp = 1;
         d2_rhdp = 1;
+        set_pair_1();
         break;
 
     case set_day:
@@ -81,6 +117,7 @@ void set_date_time_mode_next() {
         blank_dp();
         d1_rhdp = 1;
         d0_rhdp = 1;
+        set_pair_0();
         break;
 
     case set_year:
@@ -88,6 +125,7 @@ void set_date_time_mode_next() {
         blank_dp();
         d5_rhdp = 1;
         d4_rhdp = 1;
+        set_pair_2();
         break;
 
     case set_hour:
@@ -95,6 +133,7 @@ void set_date_time_mode_next() {
         blank_dp();
         d3_rhdp = 1;
         d2_rhdp = 1;
+        set_pair_1();
         break;
 
     case set_minute:
@@ -102,6 +141,7 @@ void set_date_time_mode_next() {
         blank_dp();
         d1_rhdp = 1;
         d0_rhdp = 1;
+        set_pair_0();
         break;
 
     case zero_seconds:
@@ -109,14 +149,19 @@ void set_date_time_mode_next() {
         blank_dp();
         d5_rhdp = 1;
         d4_rhdp = 1;
+        set_pair_2();
         break;
 
     default:
         break;
     }
+
+    sei();
 }
 
 void set_date_time_mode_advance_by_one() {
+    cli();
+
     switch (set_time_mode) {
     case set_month: {
         if (new_dt.month() == 12) {
@@ -174,6 +219,8 @@ void set_date_time_mode_advance_by_one() {
     default:
         break;
     }
+
+    sei();
 }
 
 #define ADVANCE_REALLY_FAST 100 // 100ms
@@ -210,7 +257,8 @@ void set_date_time_mode_handler() {
         break;
     }
 
-    // FIXME Block interrupts from this point to the end of the function
+    // Block interrupts from this point to the end of the function
+    cli();
 
     // This provides a way to track how long the switch is being held down and thus how
     // frequently to call set_time_mode_advance_by_one().
@@ -254,6 +302,8 @@ void set_date_time_mode_handler() {
         input_switch_released = false; // input_switch_released is only reset in this function
         last_input_call_time = 0;      // last_input... is static local to this function
     }
+
+    sei();
 }
 
 /**
@@ -314,6 +364,8 @@ void mode_switch_release() {
                 blank_dp(); // Highlight digits to be set
                 d5_rhdp = 1;
                 d4_rhdp = 1;
+
+                set_pair_2();
 
                 new_dt = dt; // initialize the new DateTime object to now
             } else if (mode == set_date_time) {

@@ -15,7 +15,7 @@ void ambient_light_setup() {
     pinMode(AMBIENT_LIGHT, INPUT);
 }
 
-void ambeint_light_adjust() {
+void ambient_light_adjust() {
     uint16_t light = analogRead(AMBIENT_LIGHT);
 
     // using ceil() means that the value is never < 1, so brightness is

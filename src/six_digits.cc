@@ -200,10 +200,23 @@ void timer_1HZ_tick_ISR() {
  * (see set_mode.cc). The default/initial value is 0 which is the brightest
  * level.
  */
-int brightness = 0;
+volatile int brightness = 0;
 
-int brightness_count[] = {231, 179, 128, 76, 24, 10}; // ~900us, ...
-int blanking_count[] = {24, 76, 127, 179, 231, 245}; // 100us, ...
+const int brightness_count[] = {231, 179, 128, 76, 24, 10}; // ~900us, ...
+const int blanking_count[] = {24, 76, 127, 179, 231, 245}; // 100us, ...
+
+/**
+ * How the pair_n variables are used: If any one of these values is zero, that
+ * means 1. the clock in the the set_date_time_mode and 2. brightness is 0 - the
+ * brightest setting. For any of the digit pairs that have pair_n == 0, drop the
+ * brightness of that pair by BRIGHTNESS_REDUCTION, which will show that the bright 
+ * digit pair is the one being set and the dimmer ones, not.
+ */
+volatile bool pair_0 = true;
+volatile bool pair_1 = true;
+volatile bool pair_2 = true;
+
+#define BRIGHTNESS_REDUCTION 3
 
 /**
  * @brief The display multiplexing code. A simple state-machine
@@ -235,6 +248,8 @@ ISR(TIMER2_COMPA_vect) {
                 // Turn on the decimal point(s) if set
                 if (d0_rhdp)
                     PORTD |= RHDP;
+
+                OCR2A = (pair_0) ? brightness_count[brightness] : brightness_count[BRIGHTNESS_REDUCTION];
             }
             // move the state to the next digit
             digit += 1;
@@ -247,6 +262,7 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_1;
                 if (d1_rhdp)
                     PORTD |= RHDP;
+                OCR2A = (pair_0) ? brightness_count[brightness] : brightness_count[BRIGHTNESS_REDUCTION];
             }
             digit += 1;
             break;
@@ -258,6 +274,7 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_2;
                 if (d2_rhdp)
                     PORTD |= RHDP;
+                OCR2A = (pair_1) ? brightness_count[brightness] : brightness_count[BRIGHTNESS_REDUCTION];
             }
 
             digit += 1;
@@ -270,6 +287,7 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_3;
                 if (d3_rhdp)
                     PORTD |= RHDP;
+                OCR2A = (pair_1) ? brightness_count[brightness] : brightness_count[BRIGHTNESS_REDUCTION];
             }
             digit += 1;
             break;
@@ -281,6 +299,7 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_4;
                 if (d4_rhdp)
                     PORTD |= RHDP;
+                OCR2A = (pair_2) ? brightness_count[brightness] : brightness_count[BRIGHTNESS_REDUCTION];
             }
             digit += 1;
             break;
@@ -292,6 +311,7 @@ ISR(TIMER2_COMPA_vect) {
                 PORTB |= DIGIT_5;
                 if (d5_rhdp)
                     PORTD |= RHDP;
+                OCR2A = (pair_2) ? brightness_count[brightness] : brightness_count[BRIGHTNESS_REDUCTION];
             }
             digit = 0;
             break;
@@ -301,7 +321,7 @@ ISR(TIMER2_COMPA_vect) {
         blanking = false;
 
         // Set the timer to illuminate the digit (e.g., for 900uS)
-        OCR2A = brightness_count[brightness];
+        // OCR2A = brightness_count[brightness];
     } else {
         // blank_display
         PORTB &= B11000100;
