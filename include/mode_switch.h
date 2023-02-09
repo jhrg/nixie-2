@@ -12,7 +12,7 @@ void set_date_time_mode_handler();
 enum modes {
     main,
     set_date_time,
-    set_config
+    set_config  // set_config not yet implemented
 };
 
 enum main_modes {

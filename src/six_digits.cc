@@ -160,9 +160,12 @@ void blank_dp() {
     d5_rhdp = 0;
 }
 
+// Set HIGH when the CLOCK_QUERY_INTERVAL seconds have elapsed and
+// the RTC should be accessed.
+volatile bool get_time = false;
+
 // Set HIGH when the 1 second interrupt been triggered by the clock,
 // Used in main_mode_handler()
-volatile bool get_time = false;
 volatile bool update_display = false;
 
 /**
@@ -456,7 +459,7 @@ void main_mode_handler() {
         get_time = false;
         dt = rtc.now(); // This call takes about 1ms
         update_display_using_mode();
-        ambeint_light_adjust();
+        ambient_light_adjust();
     } else if (update_display) {
         update_display = false;
         dt = dt + ts;                // Advance 'dt' by one second

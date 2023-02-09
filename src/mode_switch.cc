@@ -180,7 +180,7 @@ void set_date_time_mode_advance_by_one() {
 #define ADVANCE_FAST 500
 #define ADVANCE 1000
 
-// Called from the main loop frequently
+// Called from the main loop frequently when in the set_date_time mode
 void set_date_time_mode_handler() {
     switch (set_time_mode) {
     case set_year:
@@ -209,6 +209,8 @@ void set_date_time_mode_handler() {
         digit_5 = new_dt.hour() / 10;
         break;
     }
+
+    // FIXME Block interrupts from this point to the end of the function
 
     // This provides a way to track how long the switch is being held down and thus how
     // frequently to call set_time_mode_advance_by_one().
