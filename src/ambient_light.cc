@@ -20,7 +20,7 @@ void ambient_light_adjust() {
 
     // using ceil() means that the value is never < 1, so brightness is
     // always between 0 and BRIGHTNESS_LEN.
-    brightness  = BRIGHTNESS_LEN - ceil(BRIGHTNESS_LEN * light/1024.0);
+    brightness = BRIGHTNESS_LEN - ceil(BRIGHTNESS_LEN * light / 1024.0);
 
     DPRINTV("light: %d, brightness: %d\n", (int)light, brightness);
 }
