@@ -160,7 +160,6 @@ void set_date_time_mode_next() {
 }
 
 void set_date_time_mode_advance_by_one() {
-    cli();
 
     switch (set_time_mode) {
     case set_month: {
@@ -220,7 +219,6 @@ void set_date_time_mode_advance_by_one() {
         break;
     }
 
-    sei();
 }
 
 #define ADVANCE_REALLY_FAST 100 // 100ms
@@ -256,9 +254,6 @@ void set_date_time_mode_handler() {
         digit_5 = new_dt.hour() / 10;
         break;
     }
-
-    // Block interrupts from this point to the end of the function
-    cli();
 
     // This provides a way to track how long the switch is being held down and thus how
     // frequently to call set_time_mode_advance_by_one().
@@ -302,8 +297,6 @@ void set_date_time_mode_handler() {
         input_switch_released = false; // input_switch_released is only reset in this function
         last_input_call_time = 0;      // last_input... is static local to this function
     }
-
-    sei();
 }
 
 /**
