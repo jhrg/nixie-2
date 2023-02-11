@@ -25,7 +25,7 @@ enum set_time_modes {
     zero_seconds
 };
 
-enum mode_switch_press_duration {
+enum switch_press_duration {
     none,
     quick,     // momentary
     medium,    // 2s
@@ -38,6 +38,6 @@ void input_switch_push();
 void input_switch_release();
 
 bool poll_mode_button();
-enum mode_switch_press_duration get_mode_button();
+enum switch_press_duration get_mode_button();
 void reset_mode_button();
 void process_mode_switch_press();

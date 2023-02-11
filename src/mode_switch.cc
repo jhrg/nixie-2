@@ -39,14 +39,13 @@ extern int brightness;
 extern void print_digits(bool newline);
 extern void blank_dp();
 
-// volatile unsigned long mode_switch_duration = 0;
-volatile enum mode_switch_press_duration mode_switch_press = none;
+volatile enum switch_press_duration mode_switch_press = none;
 
-volatile unsigned long input_switch_time = 0;
-volatile unsigned long input_switch_duration = 0;
+volatile unsigned long input_switch_down_time = 0;
+volatile enum switch_press_duration input_switch_press = none;
 
-volatile bool input_switch_press = false;  // set to true by the IRQ
-volatile bool input_switch_released = true;
+volatile bool input_switch_down = false;  // set to true by the IRQ
+volatile bool input_switch_up = true;
 
 volatile enum modes mode = main;
 
@@ -265,13 +264,10 @@ void set_date_time_mode_handler() {
 
     // if the switch was not held down for 2s or longer. This keeps the count
     // from being incremented and extra time when a long press is released
-    if (input_switch_released && input_switch_duration < SWITCH_PRESS_2S) {
+    if (input_switch_up && input_switch_press == quick) {
         set_date_time_mode_advance_by_one();
-    } else if (input_switch_press && !input_switch_released) {
-        // This duration is the time the switch has been held down before being released.
-        // Different from the time the switch _was_ held down before being released, which
-        // is measured by the global input_switch_duration
-        unsigned long duration = millis() - input_switch_time;
+    } else if (input_switch_down && !input_switch_up) {
+        unsigned long duration = millis() - input_switch_down_time;
         if (duration > SWITCH_PRESS_10S) {
             // call set_time_mode_advance_by_one() really often (1/10th a second)
             if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
@@ -297,18 +293,18 @@ void set_date_time_mode_handler() {
     }
 
     // If the input switch was released, reset the state and the also last_input_call_time
-    if (input_switch_released) {
-        input_switch_released = false;  // input_switch_released is only reset in this function
+    if (input_switch_up) {
+        input_switch_up = false;        // input_switch_released is only reset in this function
         last_input_call_time = 0;       // last_input... is static local to this function
     }
 }
 
 void clear_set_time_mode_state_variables() {
-    input_switch_time = 0;
-    input_switch_duration = 0;
+    input_switch_down_time = 0;
+    // input_switch_duration = 0;
 
-    input_switch_press = false;  // set to true by the IRQ
-    input_switch_released = true;
+    input_switch_down = false;  // set to true by the IRQ
+    input_switch_up = true;
 }
 
 /**
@@ -318,7 +314,7 @@ void clear_set_time_mode_state_variables() {
  */
 bool poll_mode_button() {
 #if DEBUG
-    static enum mode_switch_press_duration last_press = none;
+    static enum switch_press_duration last_press = none;
     if (last_press != mode_switch_press) {
         print("Mode switch state: %d\n", mode_switch_press);
         last_press = mode_switch_press;
@@ -330,7 +326,7 @@ bool poll_mode_button() {
 /**
  * Get the state of the mode switch.
  */
-enum mode_switch_press_duration get_mode_button() {
+enum switch_press_duration get_mode_button() {
     return mode_switch_press;
 }
 
@@ -462,56 +458,52 @@ void mode_switch_release() {
 //
 void input_switch_push() {
     static unsigned long last_interrupt_time = 0;
-    unsigned long interrupt_time = millis();
+    unsigned long now = millis();
 
-    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
-        DPRINT("input switch press, ");
+    if (now - last_interrupt_time > SWITCH_INTERVAL) {
+        input_switch_press = none;  // This is set when the switch is released
 
-        input_switch_time = interrupt_time;
-        input_switch_duration = 0;
-        input_switch_press = true;
-        input_switch_released = false;
+        // Use these to tell if the switch is being held down
+        input_switch_down = true;
+        input_switch_up = false;
+
+        // Use this to tell how long it has been held down (comparing to millis())
+        input_switch_down_time = now;
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, FALLING);
     }
 
-    last_interrupt_time = interrupt_time;
+    last_interrupt_time = now;
 }
 
 void input_switch_release() {
     static unsigned long last_interrupt_time = 0;
-    unsigned long interrupt_time = millis();
+    unsigned long now = millis();
 
-    if (interrupt_time - last_interrupt_time > SWITCH_INTERVAL) {
-        DPRINT("input switch release\n");
+    if (now - last_interrupt_time > SWITCH_INTERVAL) {
+        unsigned long input_switch_duration = now - input_switch_down_time;
+
+        input_switch_down_time = 0;  // TODO set to zero in the mode switch code above, too
+
+        input_switch_down = false;
+        input_switch_up = true;  // reset above in set_date_time_mode_handler()
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
-        input_switch_duration = interrupt_time - input_switch_time;
-
-        DPRINTV("Duration: %ld uS\n", input_switch_duration);
-        // Serial.println(input_switch_duration);
-
-        input_switch_time = 0;  // TODO set to zero in the mode switch code above, too
-
-        input_switch_press = false;
-        input_switch_released = true;  // reset above in set_date_time_mode_handler()
 
         if (input_switch_duration > SWITCH_PRESS_5S) {
-            // noop for now
+            input_switch_press = very_long;
         } else if (input_switch_duration > SWITCH_PRESS_2S) {
-            // noop
+            input_switch_press = medium;
         } else {
-            DPRINT("input short press: ");
+            input_switch_press = quick;
             if (mode == main) {
                 // brightness is an unsigned char
                 brightness = (brightness == 5) ? 0 : brightness + 1;
-                DPRINTV("input main mode, brightness: %d\n", brightness);
             } else if (mode == set_date_time) {
-                DPRINT("input set_date_time\n");
             }
         }
     }
 
-    input_switch_duration = 0;
-    last_interrupt_time = interrupt_time;
+    // input_switch_duration = 0;
+    last_interrupt_time = now;
 }
