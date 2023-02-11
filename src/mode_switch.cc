@@ -299,6 +299,17 @@ void set_date_time_mode_handler() {
     }
 }
 
+void clear_set_time_mode_state_variables() {
+    mode_switch_time = 0;
+    mode_switch_duration = 0;
+
+    input_switch_time = 0;
+    input_switch_duration = 0;
+
+    input_switch_press = false;  // set to true by the IRQ
+    input_switch_released = false;
+}
+
 /**
  * First ISR for the mode switch. Triggered when the switch is pressed.
  * The mode switch GPIO is held HIGH normally and a button press causes
@@ -364,6 +375,8 @@ void mode_switch_release() {
             } else if (mode == set_date_time) {
                 DPRINT("main\n");
                 blank_dp();
+                set_pair_all();
+                clear_set_time_mode_state_variables();
                 mode = main;
             } else {
                 DPRINT("?\n");
