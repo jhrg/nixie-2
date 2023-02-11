@@ -136,9 +136,6 @@ void update_display_using_mode() {
         blinker = !blinker;
         d0_rhdp = blinker ? 1 : 0;
         update_display_with_date();
-#if 0
-        print_digits(true);
-#endif
         break;
 
     case show_weather: {
@@ -489,6 +486,9 @@ void main_mode_handler() {
 
 void loop() {
     hv_ps_adjust();
+    
+    if (poll_mode_button())
+        process_mode_switch_press();
 
     if (mode == main) {
         main_mode_handler();

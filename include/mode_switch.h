@@ -2,11 +2,6 @@
 #define MODE_SWITCH 5  // D5
 #define INPUT_SWITCH 4 // D4
 
-void mode_switch_push();
-void mode_switch_release();
-void input_switch_push();
-void input_switch_release();
-
 void set_date_time_mode_handler();
 
 enum modes {
@@ -29,3 +24,20 @@ enum set_time_modes {
     set_minute,
     zero_seconds
 };
+
+enum mode_switch_press_duration {
+    none,
+    quick,     // momentary
+    medium,    // 2s
+    very_long  // 5s
+};
+
+void mode_switch_push();
+void mode_switch_release();
+void input_switch_push();
+void input_switch_release();
+
+bool poll_mode_button();
+enum mode_switch_press_duration get_mode_button();
+void reset_mode_button();
+void process_mode_switch_press();
