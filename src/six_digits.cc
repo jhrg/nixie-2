@@ -136,7 +136,7 @@ void update_display_using_mode() {
         blinker = !blinker;
         d0_rhdp = blinker ? 1 : 0;
         update_display_with_date();
-#if DEBUG
+#if 0
         print_digits(true);
 #endif
         break;

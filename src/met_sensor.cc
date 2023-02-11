@@ -57,29 +57,30 @@ void test_bme280() {
 // for altitude correction: 1 hPa decrease per 30 feet above MS
 static float station_msl = 5560.0; // feet; could be a config param
 static float hPa_station_correction = station_msl / 30.0;
-;
+
+volatile int weather_display_state = 0;
 
 // The weather display is a simple state machine:
 // 0,..., N/2 - 1: show temperature, humidity
 // N/2, ..., N-1: show pressure
 void update_display_with_weather() {
-    static int state = 0;
-    if (state > WEATHER_DISPLAY_DURATION - 1)
-        state = 0;
 
+    if (weather_display_state > WEATHER_DISPLAY_DURATION - 1)
+        weather_display_state = 0;
+#if 0
     DPRINTV("Weather state: %d\n", state);
-
-    switch (state) {
+#endif
+    switch (weather_display_state) {
     case 0: {
         float temperature = bme.readTemperature() * 9.0 / 5.0 + 32.0;
 
         int LHS = (int)temperature;
         int RHS = (int)((temperature - LHS) * 100.0);
-
+#if 0
         DPRINTF("Temperature: ", temperature);
         DPRINTV("LHS: %d\n", LHS);
         DPRINTV("RHS: %d\n", RHS);
-
+#endif
         blank_dp();
         digit_0 = RHS / 10;
         d1_rhdp = 1;
@@ -90,7 +91,7 @@ void update_display_with_weather() {
         digit_4 = -1;
         digit_5 = -1;
 
-#if DEBUG
+#if 0
         print_digits(true);
 #endif
         break;
@@ -101,19 +102,11 @@ void update_display_with_weather() {
 
         int LHS = (int)humidity;
         int RHS = (int)((humidity - LHS) * 100.0);
-
+#if 0
         DPRINTV("LHS: %d\n", LHS);
         DPRINTV("RHS: %d\n", RHS);
-
-        blank_dp();
-
-#if 0
-        digit_0 = RHS % 10;
-        digit_1 = RHS / 10;
-        d2_rhdp = 1;
-        digit_2 = LHS % 10;
-        digit_3 = LHS / 10;
 #endif
+        blank_dp();
 
         digit_0 = RHS / 10;
         d1_rhdp = 1;
@@ -123,7 +116,7 @@ void update_display_with_weather() {
         digit_3 = -1;
         digit_4 = -1;
         digit_5 = -1;
-#if DEBUG
+#if 0
         print_digits(true);
 #endif
         break;
@@ -134,10 +127,10 @@ void update_display_with_weather() {
 
         int LHS = (int)pressure;
         int RHS = (int)((pressure - LHS) * 100.0);
-
+#if 0
         DPRINTV("LHS: %d\n", LHS);
         DPRINTV("RHS: %d\n", RHS);
-
+#endif
         blank_dp();
         digit_0 = RHS % 10;
         digit_1 = RHS / 10;
@@ -147,7 +140,7 @@ void update_display_with_weather() {
 
         digit_4 = -1;
         digit_5 = -1;
-#if DEBUG
+#if 0
         print_digits(true);
 #endif
         break;
@@ -157,5 +150,5 @@ void update_display_with_weather() {
         break;
     }
 
-    state += 1;
+    weather_display_state += 1;
 }

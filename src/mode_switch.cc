@@ -19,8 +19,9 @@ volatile unsigned long mode_switch_duration = 0;
 
 volatile unsigned long input_switch_time = 0;
 volatile unsigned long input_switch_duration = 0;
+
 volatile bool input_switch_press = false; // set to true by the IRQ
-volatile bool input_switch_released = false;
+volatile bool input_switch_released = true;
 
 volatile enum modes mode = main;
 volatile enum main_modes main_mode = show_time;
@@ -70,6 +71,8 @@ void set_pair_all() {
     pair_0 = pair_1 = pair_2 = true;
 }
 
+extern volatile int weather_display_state;
+
 /**
  * Cycle the main modes
  */
@@ -83,6 +86,7 @@ void main_mode_next() {
 
     case show_date:
         main_mode = show_weather;
+        weather_display_state = 0;
         break;
 
     case show_weather:
@@ -307,7 +311,7 @@ void clear_set_time_mode_state_variables() {
     input_switch_duration = 0;
 
     input_switch_press = false;  // set to true by the IRQ
-    input_switch_released = false;
+    input_switch_released = true;
 }
 
 /**
@@ -396,6 +400,7 @@ void mode_switch_release() {
         }
     }
 
+    mode_switch_duration = 0;
     last_interrupt_time = interrupt_time;
 }
 
@@ -461,5 +466,6 @@ void input_switch_release() {
         }
     }
 
+    input_switch_duration = 0;
     last_interrupt_time = interrupt_time;
 }
