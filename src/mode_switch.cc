@@ -6,10 +6,10 @@
 #include "mode_switch.h"
 #include "print.h"
 
-#define SWITCH_INTERVAL 150     // ms
-#define SWITCH_PRESS_2S 2000    // 2 Seconds
-#define SWITCH_PRESS_5S 5000    // 5 S
-#define SWITCH_PRESS_10S 10000  // 10 S
+#define SWITCH_INTERVAL 150    // ms
+#define SWITCH_PRESS_2S 2000   // 2 Seconds
+#define SWITCH_PRESS_5S 5000   // 5 S
+#define SWITCH_PRESS_10S 10000 // 10 S
 
 extern volatile int digit_0;
 extern volatile int digit_1;
@@ -31,8 +31,8 @@ extern volatile bool pair_0;
 extern volatile bool pair_1;
 extern volatile bool pair_2;
 
-extern DateTime dt;  // This is clock's time, updated when set-time mode is exited
-DateTime new_dt;     // initialized to 'dt' when set_time mode is entered
+extern DateTime dt; // This is clock's time, updated when set-time mode is exited
+DateTime new_dt;    // initialized to 'dt' when set_time mode is entered
 extern RTC_DS3231 rtc;
 extern int brightness;
 
@@ -44,7 +44,7 @@ volatile enum switch_press_duration mode_switch_press = none;
 volatile unsigned long input_switch_down_time = 0;
 volatile enum switch_press_duration input_switch_press = none;
 
-volatile bool input_switch_down = false;  // set to true by the IRQ
+volatile bool input_switch_down = false; // set to true by the IRQ
 volatile bool input_switch_up = true;
 
 volatile enum modes mode = main;
@@ -81,21 +81,21 @@ void main_mode_next() {
     cli();
 
     switch (main_mode) {
-        case show_time:
-            main_mode = show_date;
-            break;
+    case show_time:
+        main_mode = show_date;
+        break;
 
-        case show_date:
-            main_mode = show_weather;
-            weather_display_state = 0;
-            break;
+    case show_date:
+        main_mode = show_weather;
+        weather_display_state = 0;
+        break;
 
-        case show_weather:
-            main_mode = show_time;
-            break;
+    case show_weather:
+        main_mode = show_time;
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     sei();
@@ -109,56 +109,56 @@ void set_date_time_mode_next() {
     cli();
 
     switch (set_time_mode) {
-        case set_month:
-            set_time_mode = set_day;
-            blank_dp();
-            d3_rhdp = 1;
-            d2_rhdp = 1;
-            set_pair_1();
-            break;
+    case set_month:
+        set_time_mode = set_day;
+        blank_dp();
+        d3_rhdp = 1;
+        d2_rhdp = 1;
+        set_pair_1();
+        break;
 
-        case set_day:
-            set_time_mode = set_year;
-            blank_dp();
-            d1_rhdp = 1;
-            d0_rhdp = 1;
-            set_pair_0();
-            break;
+    case set_day:
+        set_time_mode = set_year;
+        blank_dp();
+        d1_rhdp = 1;
+        d0_rhdp = 1;
+        set_pair_0();
+        break;
 
-        case set_year:
-            set_time_mode = set_hour;
-            blank_dp();
-            d5_rhdp = 1;
-            d4_rhdp = 1;
-            set_pair_2();
-            break;
+    case set_year:
+        set_time_mode = set_hour;
+        blank_dp();
+        d5_rhdp = 1;
+        d4_rhdp = 1;
+        set_pair_2();
+        break;
 
-        case set_hour:
-            set_time_mode = set_minute;
-            blank_dp();
-            d3_rhdp = 1;
-            d2_rhdp = 1;
-            set_pair_1();
-            break;
+    case set_hour:
+        set_time_mode = set_minute;
+        blank_dp();
+        d3_rhdp = 1;
+        d2_rhdp = 1;
+        set_pair_1();
+        break;
 
-        case set_minute:
-            set_time_mode = zero_seconds;
-            blank_dp();
-            d1_rhdp = 1;
-            d0_rhdp = 1;
-            set_pair_0();
-            break;
+    case set_minute:
+        set_time_mode = zero_seconds;
+        blank_dp();
+        d1_rhdp = 1;
+        d0_rhdp = 1;
+        set_pair_0();
+        break;
 
-        case zero_seconds:
-            set_time_mode = set_month;
-            blank_dp();
-            d5_rhdp = 1;
-            d4_rhdp = 1;
-            set_pair_2();
-            break;
+    case zero_seconds:
+        set_time_mode = set_month;
+        blank_dp();
+        d5_rhdp = 1;
+        d4_rhdp = 1;
+        set_pair_2();
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     sei();
@@ -166,96 +166,96 @@ void set_date_time_mode_next() {
 
 void set_date_time_mode_advance_by_one() {
     switch (set_time_mode) {
-        case set_month: {
-            if (new_dt.month() == 12) {
-                new_dt = DateTime(new_dt.year(), 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
-            } else {
-                new_dt = DateTime(new_dt.year(), new_dt.month() + 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
-            }
-            break;
+    case set_month: {
+        if (new_dt.month() == 12) {
+            new_dt = DateTime(new_dt.year(), 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
+        } else {
+            new_dt = DateTime(new_dt.year(), new_dt.month() + 1, new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
         }
+        break;
+    }
 
-        case set_day: {
-            if (new_dt.day() == 31) {
-                new_dt = DateTime(new_dt.year(), new_dt.month(), 1, new_dt.hour(), new_dt.minute(), new_dt.second());
-            } else {
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day() + 1, new_dt.hour(), new_dt.minute(), new_dt.second());
-            }
-            break;
+    case set_day: {
+        if (new_dt.day() == 31) {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), 1, new_dt.hour(), new_dt.minute(), new_dt.second());
+        } else {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day() + 1, new_dt.hour(), new_dt.minute(), new_dt.second());
         }
+        break;
+    }
 
-        case set_year: {
-            if (new_dt.year() == 2099) {
-                new_dt = DateTime(2000, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
-            } else {
-                new_dt = DateTime(new_dt.year() + 1, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
-            }
-            break;
+    case set_year: {
+        if (new_dt.year() == 2099) {
+            new_dt = DateTime(2000, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
+        } else {
+            new_dt = DateTime(new_dt.year() + 1, new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), new_dt.second());
         }
+        break;
+    }
 
-        case set_hour: {
-            if (new_dt.hour() == 23) {
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
-            } else {
-                uint8_t hour = new_dt.hour() + 1;
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), hour, new_dt.minute(), new_dt.second());
-            }
-            break;
+    case set_hour: {
+        if (new_dt.hour() == 23) {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), 0, new_dt.minute(), new_dt.second());
+        } else {
+            uint8_t hour = new_dt.hour() + 1;
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), hour, new_dt.minute(), new_dt.second());
         }
+        break;
+    }
 
-        case set_minute: {
-            if (new_dt.minute() == 59) {
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), 0, new_dt.second());
-            } else {
-                uint8_t minute = new_dt.minute() + 1;
-                new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), minute, new_dt.second());
-            }
-            break;
+    case set_minute: {
+        if (new_dt.minute() == 59) {
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), 0, new_dt.second());
+        } else {
+            uint8_t minute = new_dt.minute() + 1;
+            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), minute, new_dt.second());
         }
+        break;
+    }
 
-        case zero_seconds:
-            new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), 0);
-            rtc.adjust(new_dt);  // Set the clock to the new time
-            dt = rtc.now();      // Update the global variable that holds the time
-            break;
+    case zero_seconds:
+        new_dt = DateTime(new_dt.year(), new_dt.month(), new_dt.day(), new_dt.hour(), new_dt.minute(), 0);
+        rtc.adjust(new_dt); // Set the clock to the new time
+        dt = rtc.now();     // Update the global variable that holds the time
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 }
 
-#define ADVANCE_REALLY_FAST 100  // 100ms
+#define ADVANCE_REALLY_FAST 100 // 100ms
 #define ADVANCE_FAST 500
 #define ADVANCE 1000
 
 // Called from the main loop frequently when in the set_date_time mode
 void set_date_time_mode_handler() {
     switch (set_time_mode) {
-        case set_year:
-        case set_month:
-        case set_day:
-            digit_0 = new_dt.year() % 10;
-            digit_1 = (new_dt.year() - 2000) / 10;
+    case set_year:
+    case set_month:
+    case set_day:
+        digit_0 = new_dt.year() % 10;
+        digit_1 = (new_dt.year() - 2000) / 10;
 
-            digit_2 = new_dt.day() % 10;
-            digit_3 = new_dt.day() / 10;
+        digit_2 = new_dt.day() % 10;
+        digit_3 = new_dt.day() / 10;
 
-            digit_4 = new_dt.month() % 10;
-            digit_5 = new_dt.month() / 10;
-            break;
+        digit_4 = new_dt.month() % 10;
+        digit_5 = new_dt.month() / 10;
+        break;
 
-        case set_hour:
-        case set_minute:
-        case zero_seconds:
-            digit_0 = new_dt.second() % 10;
-            digit_1 = new_dt.second() / 10;
+    case set_hour:
+    case set_minute:
+    case zero_seconds:
+        digit_0 = new_dt.second() % 10;
+        digit_1 = new_dt.second() / 10;
 
-            digit_2 = new_dt.minute() % 10;
-            digit_3 = new_dt.minute() / 10;
+        digit_2 = new_dt.minute() % 10;
+        digit_3 = new_dt.minute() / 10;
 
-            digit_4 = new_dt.hour() % 10;
-            digit_5 = new_dt.hour() / 10;
-            break;
+        digit_4 = new_dt.hour() % 10;
+        digit_5 = new_dt.hour() / 10;
+        break;
     }
 #if 0
     // This provides a way to track how long the switch is being held down and thus how
@@ -304,7 +304,7 @@ void clear_set_time_mode_state_variables() {
     input_switch_down_time = 0;
     // input_switch_duration = 0;
 
-    input_switch_down = false;  // set to true by the IRQ
+    input_switch_down = false; // set to true by the IRQ
     input_switch_up = true;
 }
 
@@ -340,62 +340,62 @@ void reset_mode_button() {
 
 void mode_switch_medium_press() {
     DPRINT("medium press: ");
-    if (mode == main) {     // change mode to set_time_mode
+    if (mode == main) { // change mode to set_time_mode
         DPRINT("set time\n");
         mode = set_date_time;
-        new_dt = dt;  // initialize the new DateTime object to now
+        new_dt = dt; // initialize the new DateTime object to now
 
         set_time_mode = set_month;
 
-        blank_dp();  // Highlight digits to be set
+        blank_dp(); // Highlight digits to be set
         d5_rhdp = 1;
         d4_rhdp = 1;
 
-        set_pair_2();        
-    } else if (mode == set_date_time) {     // change mode to te main mode
+        set_pair_2();
+    } else if (mode == set_date_time) { // change mode to te main mode
         DPRINT("main\n");
         blank_dp();
         set_pair_all();
         clear_set_time_mode_state_variables();
         mode = main;
-    } 
+    }
 }
 
 void mode_switch_quick_press() {
     DPRINT("short press: ");
     if (mode == main) {
         main_mode_next();
-        blank_dp();  // Added for quick change from weather to date
+        blank_dp(); // Added for quick change from weather to date
         DPRINTV("Main mode %d\n", main_mode);
     } else if (mode == set_date_time) {
         set_date_time_mode_next();
         DPRINTV("set_time mode %d\n", set_time_mode);
-    } 
+    }
 }
 
 /**
  * Assume that poll_mode_switch() returns true.
- * 
+ *
  * Use the various mode switch and mode state to perform the correct
  * action. Then reset the mode switch state to none.
-*/
+ */
 void process_mode_switch_press() {
     switch (get_mode_button()) {
-        case none:
-            return;
-        case very_long:
-            break;
-        case medium:
-            mode_switch_medium_press();
-            break;
-        case quick:
-            mode_switch_quick_press();
-            break;
+    case none:
+        return;
+    case very_long:
+        break;
+    case medium:
+        mode_switch_medium_press();
+        break;
+    case quick:
+        mode_switch_quick_press();
+        break;
     }
     reset_mode_button();
 }
 
-volatile unsigned long mode_switch_down_time = 0;  // Used by the two mode switch ISRs
+volatile unsigned long mode_switch_down_time = 0; // Used by the two mode switch ISRs
 
 /**
  * First ISR for the mode switch. Triggered when the switch is pressed.
@@ -417,7 +417,7 @@ void mode_switch_push() {
 
     if (now - last_interrupt_time > SWITCH_INTERVAL) {
         mode_switch_down_time = now;
-        mode_switch_press = none;  // This is set when the switch is released
+        mode_switch_press = none; // This is set when the switch is released
         attachPCINT(digitalPinToPCINT(MODE_SWITCH), mode_switch_release, FALLING);
     }
 
@@ -500,14 +500,14 @@ void input_switch_quick_press() {
  */
 void process_input_switch_press() {
     switch (get_input_button()) {
-        case none:
-            return;
-        case very_long:
-        case medium:
-            break;
-        case quick:
-            input_switch_quick_press();
-            break;
+    case none:
+        return;
+    case very_long:
+    case medium:
+        break;
+    case quick:
+        input_switch_quick_press();
+        break;
     }
     reset_input_button();
 }
@@ -517,10 +517,12 @@ void process_input_switch_held() {
     // frequently to call set_time_mode_advance_by_one().
     static unsigned long last_input_call_time = 0;
 
-    cli();  // Prevent input_switch_down_time from being zeroed
+    cli(); // Prevent input_switch_down_time from being zeroed
 
-    if (!input_switch_held_down())  // Makes sure it's still held down
+    if (!input_switch_held_down()) { // Makes sure it's still held down
+        sei();
         return;
+    }
 
     unsigned long duration = millis() - input_switch_down_time;
 
@@ -567,8 +569,8 @@ void input_switch_push() {
         input_switch_down = true;
         input_switch_up = false;
 
-        input_switch_down_time = now;  // Use this to tell how long it has been held down
-        input_switch_press = none;     // This is set when the switch is released
+        input_switch_down_time = now; // Use this to tell how long it has been held down
+        input_switch_press = none;    // This is set when the switch is released
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, FALLING);
     }
 
@@ -582,10 +584,10 @@ void input_switch_release() {
     if (now - last_interrupt_time > SWITCH_INTERVAL) {
         unsigned long input_switch_duration = now - input_switch_down_time;
 
-        input_switch_down_time = 0;  // TODO set to zero in the mode switch code above, too
+        input_switch_down_time = now; // TODO set to zero in the mode switch code above, too
 
         input_switch_down = false;
-        input_switch_up = true;  // reset above in set_date_time_mode_handler()
+        input_switch_up = true; // reset above in set_date_time_mode_handler()
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
