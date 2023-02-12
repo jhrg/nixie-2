@@ -518,12 +518,11 @@ void process_input_switch_held() {
     // frequently to call set_time_mode_advance_by_one().
     static unsigned long last_input_call_time = 0;
 
-    cli(); // Prevent input_switch_down_time from being zeroed
-
-    if (!input_switch_held_down()) { // Makes sure it's still held down
-        sei();
+    if (digitalRead(INPUT_SWITCH) == LOW) { // Makes sure it's still held down
         return;
     }
+
+    cli(); // Prevent input_switch_down_time from being zeroed
 
     unsigned long duration = millis() - input_switch_down_time;
     // FIXME Remove DPRINTV("input_switch_down_time: %ld\n", input_switch_down_time);
