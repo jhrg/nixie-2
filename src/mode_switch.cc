@@ -44,9 +44,6 @@ volatile enum switch_press_duration mode_switch_press = none;
 volatile unsigned long input_switch_down_time = 0;
 volatile enum switch_press_duration input_switch_press = none;
 
-//volatile bool input_switch_down = false; // set to true by the IRQ
-//volatile bool input_switch_up = true;
-
 volatile enum modes mode = main;
 
 volatile enum main_modes main_mode = show_time;
@@ -257,58 +254,8 @@ void set_date_time_mode_handler() {
         digit_5 = new_dt.hour() / 10;
         break;
     }
-#if 0
-    // This provides a way to track how long the switch is being held down and thus how
-    // frequently to call set_time_mode_advance_by_one().
-    static unsigned long last_input_call_time = 0;
-
-    // if the switch was not held down for 2s or longer. This keeps the count
-    // from being incremented and extra time when a long press is released
-    if (input_switch_up && input_switch_press == quick) {
-        set_date_time_mode_advance_by_one();
-    } else if (input_switch_down && !input_switch_up) {
-        unsigned long duration = millis() - input_switch_down_time;
-        if (duration > SWITCH_PRESS_10S) {
-            // call set_time_mode_advance_by_one() really often (1/10th a second)
-            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
-                DPRINT("Really fast\n");
-                set_date_time_mode_advance_by_one();
-                last_input_call_time = millis();
-            }
-        } else if (duration > SWITCH_PRESS_5S) {
-            // call set_time_mode_advance_by_one() often (half second)
-            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_FAST)) {
-                DPRINT("fast\n");
-                set_date_time_mode_advance_by_one();
-                last_input_call_time = millis();
-            }
-        } else if (duration > SWITCH_PRESS_2S) {
-            // call set_time_mode_advance_by_one() once per second
-            if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE)) {
-                DPRINT("regular\n");
-                set_date_time_mode_advance_by_one();
-                last_input_call_time = millis();
-            }
-        }
-    }
-
-    // If the input switch was released, reset the state and the also last_input_call_time
-    if (input_switch_up) {
-        input_switch_up = false;        // input_switch_released is only reset in this function
-        last_input_call_time = 0;       // last_input... is static local to this function
-    }
-#endif
 }
 
-#if 0
-void clear_set_time_mode_state_variables() {
-    // input_switch_down_time = 0;
-    //  input_switch_duration = 0;
-
-    input_switch_down = false; // set to true by the IRQ
-    input_switch_up = true;
-}
-#endif
 /**
  * Return true if the mode switch was pressed and released.
  *
@@ -466,9 +413,8 @@ bool poll_input_button() {
     return input_switch_press != none;
 }
 
-bool input_switch_held_down() {
+inline bool input_switch_held_down() {
     return PIND & _BV(INPUT_SWITCH_PORT);
-    // return input_switch_down && !input_switch_up;
 }
 
 /**
@@ -571,10 +517,6 @@ void input_switch_push() {
     unsigned long now = millis();
 
     if (now - last_interrupt_time > SWITCH_INTERVAL) {
-        // Use these to tell if the switch is being held down
-        //input_switch_down = true;
-        //input_switch_up = false;
-
         input_switch_down_time = now; // Use this to tell how long it has been held down
         input_switch_press = none;    // This is set when the switch is released
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, FALLING);
@@ -589,12 +531,7 @@ void input_switch_release() {
 
     if (now - last_interrupt_time > SWITCH_INTERVAL) {
         unsigned long input_switch_duration = now - input_switch_down_time;
-
         input_switch_down_time = now; // TODO set to zero in the mode switch code above, too
-
-        //input_switch_down = false;
-        //input_switch_up = true; // reset above in set_date_time_mode_handler()
-
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
         if (input_switch_duration > SWITCH_PRESS_5S) {
