@@ -1,6 +1,7 @@
 
 #define MODE_SWITCH 5  // D5
 #define INPUT_SWITCH 4 // D4
+#define INPUT_SWITCH_PORT PD4  // Used for faster reads
 
 void set_date_time_mode_handler();
 

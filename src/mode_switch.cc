@@ -44,8 +44,8 @@ volatile enum switch_press_duration mode_switch_press = none;
 volatile unsigned long input_switch_down_time = 0;
 volatile enum switch_press_duration input_switch_press = none;
 
-volatile bool input_switch_down = false; // set to true by the IRQ
-volatile bool input_switch_up = true;
+//volatile bool input_switch_down = false; // set to true by the IRQ
+//volatile bool input_switch_up = true;
 
 volatile enum modes mode = main;
 
@@ -467,7 +467,8 @@ bool poll_input_button() {
 }
 
 bool input_switch_held_down() {
-    return input_switch_down && !input_switch_up;
+    return PIND & _BV(INPUT_SWITCH_PORT);
+    // return input_switch_down && !input_switch_up;
 }
 
 /**
@@ -518,14 +519,19 @@ void process_input_switch_held() {
     // frequently to call set_time_mode_advance_by_one().
     static unsigned long last_input_call_time = 0;
 
+#if 0
     if (digitalRead(INPUT_SWITCH) == LOW) { // Makes sure it's still held down
         return;
     }
-
+#endif
     cli(); // Prevent input_switch_down_time from being zeroed
 
+    if (!input_switch_held_down()) {
+        return;
+    }
+
     unsigned long duration = millis() - input_switch_down_time;
-    // FIXME Remove DPRINTV("input_switch_down_time: %ld\n", input_switch_down_time);
+
     sei();
 
     if (duration > SWITCH_PRESS_10S) {
@@ -566,8 +572,8 @@ void input_switch_push() {
 
     if (now - last_interrupt_time > SWITCH_INTERVAL) {
         // Use these to tell if the switch is being held down
-        input_switch_down = true;
-        input_switch_up = false;
+        //input_switch_down = true;
+        //input_switch_up = false;
 
         input_switch_down_time = now; // Use this to tell how long it has been held down
         input_switch_press = none;    // This is set when the switch is released
@@ -586,8 +592,8 @@ void input_switch_release() {
 
         input_switch_down_time = now; // TODO set to zero in the mode switch code above, too
 
-        input_switch_down = false;
-        input_switch_up = true; // reset above in set_date_time_mode_handler()
+        //input_switch_down = false;
+        //input_switch_up = true; // reset above in set_date_time_mode_handler()
 
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
