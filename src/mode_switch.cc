@@ -527,7 +527,7 @@ void input_switch_release() {
 
     if (now - last_interrupt_time > SWITCH_INTERVAL) {
         unsigned long input_switch_duration = now - input_switch_down_time;
-        input_switch_down_time = now; // TODO set to zero in the mode switch code above, too
+        input_switch_down_time = now;  // TODO Needed?
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_push, RISING);
 
         if (input_switch_duration > SWITCH_PRESS_5S) {
