@@ -300,14 +300,15 @@ void set_date_time_mode_handler() {
 #endif
 }
 
+#if 0
 void clear_set_time_mode_state_variables() {
-    input_switch_down_time = 0;
-    // input_switch_duration = 0;
+    // input_switch_down_time = 0;
+    //  input_switch_duration = 0;
 
     input_switch_down = false; // set to true by the IRQ
     input_switch_up = true;
 }
-
+#endif
 /**
  * Return true if the mode switch was pressed and released.
  *
@@ -356,7 +357,7 @@ void mode_switch_medium_press() {
         DPRINT("main\n");
         blank_dp();
         set_pair_all();
-        clear_set_time_mode_state_variables();
+        // FIXME Remove clear_set_time_mode_state_variables();
         mode = main;
     }
 }
@@ -525,7 +526,7 @@ void process_input_switch_held() {
     }
 
     unsigned long duration = millis() - input_switch_down_time;
-
+    // FIXME Remove DPRINTV("input_switch_down_time: %ld\n", input_switch_down_time);
     sei();
 
     if (duration > SWITCH_PRESS_10S) {
