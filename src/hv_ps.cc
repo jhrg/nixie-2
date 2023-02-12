@@ -79,27 +79,3 @@ void hv_ps_adjust() {
     // OCR1B is Pin 10
     OCR1B = (unsigned char)output;
 }
-
-#if 0
-/**
- * @brief compute on iteration of the PID controller.
- * The sample period is 10ms. The PID controller will only compute
- * at that rate, but we can save time by only calling the ADC when the
- * PID controller needs a new value.
- */
-void hv_ps_adjust() {
-    input = analogRead(HV_PS_INPUT);
-#if PID_DIAGNOSTIC
-    PORTD |= _BV(PORTD6);
-#endif
-    myPID.Compute();
-#if PID_DIAGNOSTIC
-    PORTD &= ~_BV(PORTD6);
-#endif
-
-    // FIXME Uncomment once the HV_PS is working again
-#if 0
-    OCR1B = (unsigned char)output;
-#endif
-}
-#endif
