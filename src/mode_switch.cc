@@ -458,7 +458,7 @@ bool poll_input_button() {
 #if DEBUG
     static enum switch_press_duration last_press = none;
     if (last_press != input_switch_press) {
-        print("Mode switch state: %d\n", input_switch_press);
+        print("Input switch state: %d\n", input_switch_press);
         last_press = input_switch_press;
     }
 #endif
