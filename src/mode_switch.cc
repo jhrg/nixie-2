@@ -465,12 +465,8 @@ void process_input_switch_held() {
     // frequently to call set_time_mode_advance_by_one().
     static unsigned long last_input_call_time = 0;
 
-#if 0
-    if (digitalRead(INPUT_SWITCH) == LOW) { // Makes sure it's still held down
-        return;
-    }
-#endif
-    cli(); // Prevent input_switch_down_time from being zeroed
+    // Prevent input_switch_down_time from being changed while the value is accessed.
+    cli();
 
     if (!input_switch_held_down()) {
         return;
