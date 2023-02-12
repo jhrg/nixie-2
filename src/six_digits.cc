@@ -486,9 +486,14 @@ void main_mode_handler() {
 
 void loop() {
     hv_ps_adjust();
-    
+
     if (poll_mode_button())
         process_mode_switch_press();
+
+    if (poll_input_button())
+        process_input_switch_press();
+    if (input_switch_held_down())
+        process_input_switch_held();
 
     if (mode == main) {
         main_mode_handler();

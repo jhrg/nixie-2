@@ -257,7 +257,7 @@ void set_date_time_mode_handler() {
             digit_5 = new_dt.hour() / 10;
             break;
     }
-
+#if 0
     // This provides a way to track how long the switch is being held down and thus how
     // frequently to call set_time_mode_advance_by_one().
     static unsigned long last_input_call_time = 0;
@@ -297,6 +297,7 @@ void set_date_time_mode_handler() {
         input_switch_up = false;        // input_switch_released is only reset in this function
         last_input_call_time = 0;       // last_input... is static local to this function
     }
+#endif
 }
 
 void clear_set_time_mode_state_variables() {
@@ -308,7 +309,7 @@ void clear_set_time_mode_state_variables() {
 }
 
 /**
- * Return true if the mode switch ws pressed and released.
+ * Return true if the mode switch was pressed and released.
  *
  * This does not change the state of the mode switch state variables.
  */
@@ -381,15 +382,15 @@ void mode_switch_quick_press() {
 void process_mode_switch_press() {
     switch (get_mode_button()) {
         case none:
+            return;
         case very_long:
-        break;
+            break;
         case medium:
-        mode_switch_medium_press();
-        break;
+            mode_switch_medium_press();
+            break;
         case quick:
-        mode_switch_quick_press();
-        break;
-
+            mode_switch_quick_press();
+            break;
     }
     reset_mode_button();
 }
@@ -448,6 +449,107 @@ void mode_switch_release() {
     last_interrupt_time = now;
 }
 
+/**
+ * Return true if the input switch was pressed and released.
+ *
+ * This does not change the state of the input switch state variables.
+ */
+bool poll_input_button() {
+#if DEBUG
+    static enum switch_press_duration last_press = none;
+    if (last_press != input_switch_press) {
+        print("Mode switch state: %d\n", input_switch_press);
+        last_press = input_switch_press;
+    }
+#endif
+    return input_switch_press != none;
+}
+
+bool input_switch_held_down() {
+    return input_switch_down && !input_switch_up;
+}
+
+/**
+ * Get the state of the input switch.
+ */
+enum switch_press_duration get_input_button() {
+    return input_switch_press;
+}
+
+/**
+ * Reset the input button state
+ */
+void reset_input_button() {
+    input_switch_press = none;
+}
+
+void input_switch_quick_press() {
+    if (mode == main) {
+        // brightness is an unsigned char
+        brightness = (brightness == 5) ? 0 : brightness + 1;
+    } else if (mode == set_date_time) {
+        set_date_time_mode_advance_by_one();
+    }
+}
+
+/**
+ * Assume that poll_input_switch() returns true.
+ *
+ * Use the various input switch and input state to perform the correct
+ * action. Then reset the input switch state to none.
+ */
+void process_input_switch_press() {
+    switch (get_input_button()) {
+        case none:
+            return;
+        case very_long:
+        case medium:
+            break;
+        case quick:
+            input_switch_quick_press();
+            break;
+    }
+    reset_input_button();
+}
+
+void process_input_switch_held() {
+    // This provides a way to track how long the switch is being held down and thus how
+    // frequently to call set_time_mode_advance_by_one().
+    static unsigned long last_input_call_time = 0;
+
+    cli();  // Prevent input_switch_down_time from being zeroed
+
+    if (!input_switch_held_down())  // Makes sure it's still held down
+        return;
+
+    unsigned long duration = millis() - input_switch_down_time;
+
+    sei();
+
+    if (duration > SWITCH_PRESS_10S) {
+        // call set_time_mode_advance_by_one() really often (1/10th a second)
+        if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_REALLY_FAST)) {
+            DPRINT("Really fast\n");
+            set_date_time_mode_advance_by_one();
+            last_input_call_time = millis();
+        }
+    } else if (duration > SWITCH_PRESS_5S) {
+        // call set_time_mode_advance_by_one() often (half second)
+        if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE_FAST)) {
+            DPRINT("fast\n");
+            set_date_time_mode_advance_by_one();
+            last_input_call_time = millis();
+        }
+    } else if (duration > SWITCH_PRESS_2S) {
+        // call set_time_mode_advance_by_one() once per second
+        if ((last_input_call_time == 0) || (millis() - last_input_call_time > ADVANCE)) {
+            DPRINT("regular\n");
+            set_date_time_mode_advance_by_one();
+            last_input_call_time = millis();
+        }
+    }
+}
+
 // These two IRQ handlers for the input switch share state information about
 // the time the switch was pressed, duration of the press and if the switch
 // is currently pressed or has been released.
@@ -461,15 +563,12 @@ void input_switch_push() {
     unsigned long now = millis();
 
     if (now - last_interrupt_time > SWITCH_INTERVAL) {
-        input_switch_press = none;  // This is set when the switch is released
-
         // Use these to tell if the switch is being held down
         input_switch_down = true;
         input_switch_up = false;
 
-        // Use this to tell how long it has been held down (comparing to millis())
-        input_switch_down_time = now;
-
+        input_switch_down_time = now;  // Use this to tell how long it has been held down
+        input_switch_press = none;     // This is set when the switch is released
         attachPCINT(digitalPinToPCINT(INPUT_SWITCH), input_switch_release, FALLING);
     }
 
@@ -496,14 +595,8 @@ void input_switch_release() {
             input_switch_press = medium;
         } else {
             input_switch_press = quick;
-            if (mode == main) {
-                // brightness is an unsigned char
-                brightness = (brightness == 5) ? 0 : brightness + 1;
-            } else if (mode == set_date_time) {
-            }
         }
     }
 
-    // input_switch_duration = 0;
     last_interrupt_time = now;
 }

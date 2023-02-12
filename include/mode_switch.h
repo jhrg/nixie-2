@@ -38,6 +38,9 @@ void input_switch_push();
 void input_switch_release();
 
 bool poll_mode_button();
-enum switch_press_duration get_mode_button();
-void reset_mode_button();
 void process_mode_switch_press();
+
+bool poll_input_button();
+bool input_switch_held_down();
+void process_input_switch_press();
+void process_input_switch_held();
