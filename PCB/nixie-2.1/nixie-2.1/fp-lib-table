@@ -1,0 +1,5 @@
+(fp_lib_table
+  (lib (name "nixie-2.1-footprints")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/nixie-2.1/Tensility_Barrel_Jack.pretty")(options "")(descr ""))
+  (lib (name "breakout_boards")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/breakout_boards")(options "")(descr ""))
+  (lib (name "nixie-footprints")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/nixie-footprints.pretty")(options "")(descr ""))
+)
