@@ -8226,7 +8226,7 @@
   (gr_line (start 182.372 162.56) (end 15.24 162.56) (layer "Margin") (width 0.15) (tstamp 42fea3e0-4236-48e8-88d6-28f261ac49d3))
   (gr_line (start 182.372 19.812) (end 182.372 162.56) (layer "Margin") (width 0.15) (tstamp 47caa320-82a7-4b8b-9615-544e758cb49b))
   (gr_line (start 15.24 19.812) (end 182.372 19.812) (layer "Margin") (width 0.15) (tstamp 66d6fed8-accf-40f3-a718-bf263376989c))
-  (gr_text "Nixie 2.1\n4/23/23\nBoard 0.1" (at 166.624 157.48) (layer "F.SilkS") (tstamp 39396a9e-9a25-4d22-87eb-2108611b2759)
+  (gr_text "Nixie 2.1\n4/23/23\nVersion 0.1" (at 166.624 157.48) (layer "F.SilkS") (tstamp 39396a9e-9a25-4d22-87eb-2108611b2759)
     (effects (font (size 1 1) (thickness 0.15)))
   )
   (gr_text "James gallager\n" (at 166.624 153.924) (layer "F.SilkS") (tstamp 650b5406-3637-4791-a2b5-3515486c93d6)
