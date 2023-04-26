@@ -1,4 +1,4 @@
-20482525964850100
+20484208444553451
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -86071,6 +86071,13 @@ PV36W103C01B00
 0
 3
 3
+nixie-2.1-footprints
+QR-code-nixie-2
+
+
+0
+0
+0
 nixie-2.1-footprints
 R_LDR_5.1x4.3mm_P3.4mm_Vertical
 Resistor, LDR 5.1x3.4mm, see http://yourduino.com/docs/Photoresistor-5516-datasheet.pdf
