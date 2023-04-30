@@ -1,4 +1,7 @@
 .pio
 .vscode
 .DS_Store
-PCB
+
+*.bak
+unused
+

@@ -1,0 +1,14 @@
+What's here?
+
+Z573M-tube is a breakout board for the Z57xM nixie tubes.
+
+breakout-boards are KiCAD footprints for the Adafruit DS3231, BMP-180/280
+and the exixe IN-14N nixie tube board.
+
+nixies-2.1 has the KiCAD design files for the nixie-2.1 board
+
+nixie-footprints.pretty holds a number of KiCAD footprints for the
+nixie-2.1 PCB.
+
+nixie-tube-clock-2.1.kicad_sym holds (most of) the symbols used by the
+nixies-2.1 board.

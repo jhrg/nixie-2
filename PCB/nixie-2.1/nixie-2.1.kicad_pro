@@ -408,7 +408,8 @@
   },
   "libraries": {
     "pinned_footprint_libs": [
-      "nixie-2.1-footprints"
+      "nixie-2.1-footprints",
+      "breakout_boards"
     ],
     "pinned_symbol_libs": [
       "breakout_boards",
