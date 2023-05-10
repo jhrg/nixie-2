@@ -1,4 +1,4 @@
-21719554462689493
+21726287583028956
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -90258,6 +90258,13 @@ Power Jack
 3
 3
 nixie-2.1-footprints
+CONN_OSTVN02A150_OST
+
+OSTVN02A150 
+0
+2
+2
+nixie-2.1-footprints
 ESG475M400AH2AA
 
 
@@ -90300,6 +90307,20 @@ PV36W103C01B00
 3
 3
 nixie-2.1-footprints
+PinHeader_1x05_P2.54mm_Vertical
+Through hole straight pin header, 1x05, 2.54mm pitch, single row
+Through hole pin header THT 1x05 2.54mm single row
+0
+5
+5
+nixie-2.1-footprints
+PinHeader_1x06_P2.54mm_Vertical
+Through hole straight pin header, 1x06, 2.54mm pitch, single row
+Through hole pin header THT 1x06 2.54mm single row
+0
+6
+6
+nixie-2.1-footprints
 QR-code-jhrg-nixie-2
 
 
@@ -90308,6 +90329,13 @@ QR-code-jhrg-nixie-2
 0
 nixie-2.1-footprints
 R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal
+Resistor, Axial_DIN0207 series, Axial, Horizontal, pin pitch=7.62mm, 0.25W = 1/4W, length*diameter=6.3*2.5mm^2, http://cdn-reichelt.de/documents/datenblatt/B400/1_4W%23YAG.pdf
+Resistor Axial_DIN0207 series Axial Horizontal pin pitch 7.62mm 0.25W = 1/4W length 6.3mm diameter 2.5mm
+0
+2
+2
+nixie-2.1-footprints
+R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal_copy
 Resistor, Axial_DIN0207 series, Axial, Horizontal, pin pitch=7.62mm, 0.25W = 1/4W, length*diameter=6.3*2.5mm^2, http://cdn-reichelt.de/documents/datenblatt/B400/1_4W%23YAG.pdf
 Resistor Axial_DIN0207 series Axial Horizontal pin pitch 7.62mm 0.25W = 1/4W length 6.3mm diameter 2.5mm
 0

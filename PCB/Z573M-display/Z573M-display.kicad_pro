@@ -56,7 +56,13 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        "isolated_copper|126131182|84651542|723969fa-5537-470e-ad33-c87fb3907d7d|00000000-0000-0000-0000-000000000000",
+        "isolated_copper|71945173|96056222|723969fa-5537-470e-ad33-c87fb3907d7d|00000000-0000-0000-0000-000000000000",
+        "isolated_copper|74489864|96066278|723969fa-5537-470e-ad33-c87fb3907d7d|00000000-0000-0000-0000-000000000000",
+        "isolated_copper|77029864|96066278|723969fa-5537-470e-ad33-c87fb3907d7d|00000000-0000-0000-0000-000000000000",
+        "starved_thermal|70612000|95504000|723969fa-5537-470e-ad33-c87fb3907d7d|e1ddfd15-e3e6-4f11-9e2c-7539ced8dbf8|F.Cu"
+      ],
       "meta": {
         "version": 2
       },
@@ -397,7 +403,7 @@
       "pin_to_pin": "error",
       "power_pin_not_driven": "error",
       "similar_labels": "warning",
-      "simulation_model_issue": "error",
+      "simulation_model_issue": "ignore",
       "unannotated": "error",
       "unit_value_mismatch": "error",
       "unresolved_variable": "error",
@@ -415,7 +421,7 @@
     ]
   },
   "meta": {
-    "filename": "nixie-2.1.kicad_pro",
+    "filename": "Z573M-display.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -463,47 +469,47 @@
     "netclass_patterns": [
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k0"
+        "pattern": "/k0"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k1"
+        "pattern": "/k1"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k2"
+        "pattern": "/k2"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k3"
+        "pattern": "/k3"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k4"
+        "pattern": "/k4"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k5"
+        "pattern": "/k5"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k6"
+        "pattern": "/k6"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k7"
+        "pattern": "/k7"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k8"
+        "pattern": "/k8"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/k9"
+        "pattern": "/k9"
       },
       {
         "netclass": "HV",
-        "pattern": "/Nixies 2.1 Display/tube_dp"
+        "pattern": "/tube_dp"
       },
       {
         "netclass": "HV",
@@ -618,14 +624,6 @@
     [
       "a160f91f-03e0-4279-9371-b79f1f206693",
       ""
-    ],
-    [
-      "307d414c-e906-4581-9ece-da89ba708596",
-      "Nixie 2 PS"
-    ],
-    [
-      "eedde95c-ca23-4ede-9d54-30f1abd010de",
-      "Nixies 2.1 Display"
     ]
   ],
   "text_variables": {}
