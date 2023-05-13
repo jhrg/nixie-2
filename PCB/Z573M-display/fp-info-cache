@@ -1,4 +1,4 @@
-21726287583028956
+21756556616339760
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -60773,6 +60773,90 @@ Yellow 5381 Series LED
 0
 2
 2
+Logos
+IN-14N_digit_6.1.small
+
+
+0
+0
+0
+Logos
+IN-14N_digit_6.1.small.neg
+
+
+0
+0
+0
+Logos
+arduino_half_inch
+
+
+0
+0
+0
+Logos
+arduino_quar_inch
+
+
+0
+0
+0
+Logos
+kicad_logo
+
+
+0
+0
+0
+Logos
+kicad_logo_half_inch
+
+
+0
+0
+0
+Logos
+kicad_quar_inch
+
+
+0
+0
+0
+Logos
+nixie-IN-14-cropped
+
+
+0
+0
+0
+Logos
+nixie-IN-14-cropped.fs.neg
+
+
+0
+0
+0
+Logos
+nixie-IN-14N-half-inch
+
+
+0
+0
+0
+Logos
+nixie-IN-14N-stippled-3
+
+
+0
+0
+0
+Logos
+nixie-IN-14N-stippled-half-inch
+
+
+0
+0
+0
 Module
 A20_OLINUXINO_LIME2
 A20 Olinuxino LIME2, 1.2GHz, 512-1024MB RAM, Micro-SD, NAND or eMMC, 1000Mbit Ethernet
@@ -90286,6 +90370,20 @@ High-voltage-25mm-v2-with-text
 0
 0
 nixie-2.1-footprints
+High_Voltage_warning
+
+
+0
+0
+0
+nixie-2.1-footprints
+High_voltage_6.5mm
+
+
+0
+0
+0
+nixie-2.1-footprints
 MUR160G
 
 
@@ -90307,12 +90405,26 @@ PV36W103C01B00
 3
 3
 nixie-2.1-footprints
+PinHeader_1x05_P2.54mm_Horizontal
+Through hole angled pin header, 1x05, 2.54mm pitch, 6mm pin length, single row
+Through hole angled pin header THT 1x05 2.54mm single row
+0
+5
+5
+nixie-2.1-footprints
 PinHeader_1x05_P2.54mm_Vertical
 Through hole straight pin header, 1x05, 2.54mm pitch, single row
 Through hole pin header THT 1x05 2.54mm single row
 0
 5
 5
+nixie-2.1-footprints
+PinHeader_1x06_P2.54mm_Horizontal
+Through hole angled pin header, 1x06, 2.54mm pitch, 6mm pin length, single row
+Through hole angled pin header THT 1x06 2.54mm single row
+0
+6
+6
 nixie-2.1-footprints
 PinHeader_1x06_P2.54mm_Vertical
 Through hole straight pin header, 1x06, 2.54mm pitch, single row
@@ -90432,3 +90544,17 @@ exixe-IN-14N
 0
 14
 11
+nixie-2.1-footprints
+nixie-in-14-20x8mm
+
+
+0
+0
+0
+nixie-2.1-footprints
+nixie-in-14-50x19mm
+
+
+0
+0
+0

@@ -2,4 +2,5 @@
   (version 7)
   (lib (name "nixie-2.1-footprints")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/nixie-footprints.pretty")(options "")(descr ""))
   (lib (name "breakout_boards")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/breakout_boards")(options "")(descr ""))
+  (lib (name "Logos")(type "KiCad")(uri "/Users/jimg/src/nixie-v1-pcb/graphics/Logos.pretty")(options "")(descr ""))
 )
