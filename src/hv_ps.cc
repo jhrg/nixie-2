@@ -21,7 +21,7 @@ PID myPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 /**
  * @brief Setup the HV power supply
  * This sets up Timer 2 so that the PWN frequency on PIN 3 is
- * 32k. The sample frequency is 10ms.
+ * 32k. The sample period is 10ms.
  */
 void hv_ps_setup() {
     pinMode(HV_PS_INPUT, INPUT);
