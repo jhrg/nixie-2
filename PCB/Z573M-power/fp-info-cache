@@ -1,4 +1,4 @@
-21743147235682444
+21748225280471992
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -90454,6 +90454,13 @@ to-92 sc-43 sc-43a sot54 PA33 transistor
 3
 3
 nixie-2.1-footprints
+UntitledZ573M-power-pcb-14mm
+
+
+0
+0
+0
+nixie-2.1-footprints
 Z57xM-v1
 
 
@@ -90474,6 +90481,20 @@ Z570M, Z573M, ..., nixie tube
 0
 13
 13
+nixie-2.1-footprints
+Z573M-power-pcb
+
+
+0
+0
+0
+nixie-2.1-footprints
+Z573M-power-pcb-14mm
+
+
+0
+0
+0
 nixie-2.1-footprints
 Z573M_Board
 
