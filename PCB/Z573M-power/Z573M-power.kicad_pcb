@@ -4,7 +4,17 @@
     (thickness 1.6)
   )
 
-  (paper "A4")
+  (paper "USLetter")
+  (title_block
+    (title "Z573M Power Supply")
+    (date "2023-09-04")
+    (rev "1")
+    (company "James Gallagher")
+    (comment 1 "Add power switch")
+    (comment 2 "Move power jack to same side as heat sinks")
+    (comment 3 "Notes:")
+  )
+
   (layers
     (0 "F.Cu" signal)
     (31 "B.Cu" signal)

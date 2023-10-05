@@ -7,4 +7,5 @@
   (lib (name "nixie-tube-clock-2.1")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/nixie-tube-clock-2.1.kicad_sym")(options "")(descr ""))
   (lib (name "breakout_boards")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/breakout_boards.kicad_sym")(options "")(descr ""))
   (lib (name "Conn_3")(type "KiCad")(uri "/Users/jimg/src/nixie-2/PCB/2023-06-25_01-12-48.kicad_sym")(options "")(descr ""))
+  (lib (name "BYW32")(type "KiCad")(uri "${KIPRJMOD}/BYW32/BYW32.kicad_sym")(options "")(descr ""))
 )
