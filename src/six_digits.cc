@@ -480,7 +480,7 @@ void main_mode_handler() {
     } else if (update_display) {
         update_display = false;
         dt = dt + ts;                // Advance 'dt' by one second
-        update_display_using_mode(); // true == adv time by 1s
+        update_display_using_mode();
     }
 }
 
